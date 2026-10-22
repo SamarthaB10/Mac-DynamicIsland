@@ -1,0 +1,1074 @@
+{
+  "evidence_id": "ev_4ccd551399f7686fbf00acc8bebd1966f5aa41425542946a5733fdf081bb643f",
+  "subject": {
+    "name": "Canopy-1.1.zip",
+    "digest": {
+      "sha256": "fbf4885b191c13ccef96acd96cd12c53ee8096af4fc09c76a647d89a297176d6"
+    },
+    "format": "zip",
+    "architecture": null,
+    "local_path": "/private/tmp/Canopy-1.1.zip"
+  },
+  "provider": {
+    "id": "rea-artifact-graph",
+    "name": "REA safe artifact graph provider",
+    "version": "1"
+  },
+  "analysis_profile": null,
+  "predicate_type": "rea.analysis",
+  "operation": "extract_artifact",
+  "parameters": {
+    "output_root": "/var/folders/kj/yg0y66756l5_pt0mg1rjj95m0000gq/T/rea-extracted-265aa808-2452-4bc2-801e-977c3dd54f2c"
+  },
+  "raw_result": null,
+  "normalized_result": {
+    "manifest": {
+      "manifest_id": "agm_312066ed8834b31286fc75bca44663627992c2da436289a036aef7be396ee055",
+      "root_artifact_id": "art_fc9d66d3db64812b304192a0e3639e023cdeccfb08f81d1470b0e5228423f44a",
+      "root_sha256": "fbf4885b191c13ccef96acd96cd12c53ee8096af4fc09c76a647d89a297176d6",
+      "root_format": "zip",
+      "graph_sha256": "68f21ce772cee155a42006135ffd872c97502d645ac621310797fbaa9ea95e01",
+      "node_count": 110,
+      "occurrence_count": 146,
+      "edge_count": 136
+    },
+    "extraction_manifest": {
+      "extraction_id": "aex_22ee892262b051885a99ad3f8c139c924d0121f78c682397569704b744591b91",
+      "source_manifest_id": "agm_312066ed8834b31286fc75bca44663627992c2da436289a036aef7be396ee055",
+      "selected_occurrence_ids": [
+        "occ_02fe36867439daeb457d93c22f09d306d76607b76bae68cbe8486a431bcbad60",
+        "occ_046335ecdb7672a5df76f2a7b1fa22753ff5aa6634ddd6f053e66d74430c0f6e",
+        "occ_06399b99aab03d6520b137965bfb7a18f264f3b7e1725a0ed73921b68a024166",
+        "occ_0ca78c9d3ce3d7eb54873c143565e053616111ac37bd22464ce679bc629830fc",
+        "occ_1269a62fbd2fd978eca22d71508a16774891207a63cae324d0dd01a49151d42e",
+        "occ_14aac88a8e8bc4de2ebbbbb47fac09c7efc130df00fb89cc8956d7f5de14ab0c",
+        "occ_1a0c108b9c94bf734b4ac0df8f61182e070ba0752d27da70d66973d074f53dab",
+        "occ_1aef1a46f2e94204444446f2641083468f8908102e959a35015512ef027a3d54",
+        "occ_1d847a97711d6c29dedec212361626437464478aba88a53cccffbb7e31448566",
+        "occ_2231f7c1493a66382841f45c45b28e76a8f0d641c7eeb1d397971154260db872",
+        "occ_26d8d0d83bd7976c4d6cfe7bb827b15c08905d3e3ba89153df1bff58e54a34af",
+        "occ_272b9ae982df0be9f11224135726a0b7e9466497e68809bfad4d73c99de017e3",
+        "occ_28d2caa60be34fad57c76fcbe84a5271399b1de71bffd6bda23299cdc58a1226",
+        "occ_305bfde58d7c29d65254cd1c1f1c4559351f70fc27676a7f9bfd2eb3e97741af",
+        "occ_31854af6ae67be40aa42a774281bd12a3fea88acc3790bd99ccb45c70f1836b8",
+        "occ_36f288a7b415379854d5aad4e03e4501aaff57d7a44d142ccd6406131090cc59",
+        "occ_389916e12a922fa92fa07ae7b9c782c05a074dcb038c38d9f0f06d1ef61f3084",
+        "occ_3bcc64c491d0fbeeaecd429dcd6bd8f49a5782c38f1d476fe7c3f6702b9acbc6",
+        "occ_3bf37f61dfe98bdac1e12c7e552fb5b049e8d7d4b53bb73eeefb15eb60393dd1",
+        "occ_4522b0bae51fb75220f97d3ab766bcf6e8faae9c5f347bc12a548ee8a05567a1",
+        "occ_4c68f95535a7d5ee1173db4f9b39f38941602af73e6fb7bd1f53908dd27c2860",
+        "occ_4ccce7c28413c71efa477611ed917c0fe98c77a91789bf62b13988b415c6c8b2",
+        "occ_4f23e04f038d6fc6ff3a07eab552718decf684427751f8f1ac6193027049d15a",
+        "occ_5092d86a5139ef34391db8215d1f11375068a727aed4160ee3f4ae4f93182298",
+        "occ_5166c6ee14ba64b8cb16159320e4e9c811ba645ea448dd393319f706497800c3",
+        "occ_5551e29277f68dbe2f62bd7b635de13df0a08e40ef019002642675bb3f06d816",
+        "occ_587b8867eceb9b16e8015ef2ef588c2be7623e2ba3757648b481dfd8880755fc",
+        "occ_594f81b6d8f1d1d088108919c3b0eeef124480d8a0adc15b3b48638b1b36a564",
+        "occ_5ef6d74f4559f8368b9ab18f8fad7c144c27752f7f2d3db39009c0f07b38d90e",
+        "occ_5ff635086a440e6a778044fd8bcd8a386925be3305cd43224902776b14abfaeb",
+        "occ_61c8421c10920ba874da3d3063982672b245ad754b60d9b3866e8dd9b6c91f9a",
+        "occ_6232486f68f7472910aebecc68324abaedfabe3ff91b81062b6e36a3dcc0173f",
+        "occ_631006a060c79ce3bdad56643b69cf1b7045cd24b625376dfdee811ba79006f8",
+        "occ_64290893d60841ad4501c6c78b8e57d5f7f3c3d77a95f2a7b37d4023d98972e7",
+        "occ_67656826d3068caaeb395f03892c1ed3aaeb2215cbe31171ff9b1f1f620d9344",
+        "occ_67a50640dc7b929e564f873f02351205dd754ea946b685a763499a03f2b0d119",
+        "occ_6c224fe4b1cbe6694e6ebe19898e81e384ebf7d6fe875de535812a9ca119b748",
+        "occ_7070c153f72e40fa84f217499ecbcaa8c934293008b16269a2431f0a80a5ed18",
+        "occ_72f631276ee490cfcc9da5c0264821a76666b362adba8c4e22f8539c6f3185b0",
+        "occ_73f378b76c59d0f271fd7d02463a319957b9d9694dbad1e0149c87c39dbfc3f6",
+        "occ_7873a1c2516151a59baff78a8aaa2fb09376551ae194d998e8ce01bb71bd8cd9",
+        "occ_79e28716a8a6440a76f76dc099abbeec2caa68eabe69c53e03b10c66091f5630",
+        "occ_7b6d021990829d35d625b0a14ef1e512e6206b76a405eb401d1335909cee5636",
+        "occ_7de046c5e99490793e0b3d9e0910078d8c003672c81c8b64215fe232e0000c39",
+        "occ_85af3328231a3ffac0ecf574913b42750212220119af10a6c4f28b75cc98c731",
+        "occ_8bea27ae447a1b3728a318167d40b5b1503934b7afab6504ff1a130409c401a8",
+        "occ_8ec0cf3e9370bbc28c5436c084799c4820f1bb8ca9146676e86a2fcfd4e24ca6",
+        "occ_8f16dafc940555b645db95986409af3133fc3fc42d84f585ecb29ac5f32fd5c7",
+        "occ_9015c7c20e8f785dbb94fa232a600f6d6ee5ebce110fd2ea1a7ad9558c41ad1a",
+        "occ_908828a7074e98031bcd9b7432ad513888e262d7bc8e763e462592fb11b2da26",
+        "occ_94e6f60ba668bab3207bf77743a73740eaf3a5b604dbae93328284538248044a",
+        "occ_95067ef86b5ddbe74004a3cc2f43e3fc8ec33c6d962d822e7d845d1982e0e0a9",
+        "occ_9c293a6cc664bb4558c9bcf0ea2195be63bb2bc1cad4c844c4af0c70bedc3334",
+        "occ_a1c2ba4ba318789151718eb46d1b9c98332746fe4d63ead86c624f36d1ec08e1",
+        "occ_a2405906707dc082e5bfd5749798b6e19ef4a6ebb79d14be1dfcf3e7a6b1a327",
+        "occ_a3fe25f39af7ff1ca3bb28b9612bbe3c9107a16373f876980e972d385532cc45",
+        "occ_a67de135528d749d2cbaafa0a651dcd8407a77a23fd4582af589070f5909932d",
+        "occ_a7b181ae926c74dff64a7b6dc286fd62bc90d4267a2773ee09814a78fd244a67",
+        "occ_aa57c0e0c6984a558045d09153ef9853b07773184dbd74ef7261760804aa9c2e",
+        "occ_af0cc1d34b1d905f9eaf2c951ec4dc1dd4cd6b0f6d7206319d1441897cf1db54",
+        "occ_af692b248395c999edc4cda8486138f4c07cf95adf635faa38937b132d3655e3",
+        "occ_af99f980e9d4295d26cd2113f77c0790c0fbfb7b2c580e7d995f8e4ad442ca09",
+        "occ_b68a275ce0cb9dae734c3b132412db409725187c5a81414ae46be1aca422d932",
+        "occ_b76d634bd21f928226f016a9cc924e6b80accd29f7f761d5916c0f38090f6c95",
+        "occ_c0cfb3261df81634d27c70ed9b945b808a371cccec5cd70b88309fc96a29a8bf",
+        "occ_ca2d42812826944b506b6b0a6f4ca416816b6c05141b8138d8414c49ce643ea4",
+        "occ_cae83f34d9701ae3f6f3ab0c7e457ca58ef7ac112df0933c9413d4d8e93636db",
+        "occ_ccfe28187f4423d17e188342fa9de79807405b24208533267d7dbfb7989520c7",
+        "occ_ce92749345de32cfb047c2036417696876dbb5786b3fadaec03ae6229eb5ed12",
+        "occ_d0851d9afa3f76f533940e5bd1bd6b477ff1f5f3a65a6449145d42c1ca41b73d",
+        "occ_d16dc951a0442ac140cc61915a52157a14ab707e7fa5461bef5e260553bf69d8",
+        "occ_d3693558e9aae5bd5b25f438e09353c1e5cbebbcfcb1ef373f411cd1dc4666ea",
+        "occ_d8755a5a00751cb3266d20ca11beb10d7e4a168a05d952637782b032c0f64f14",
+        "occ_d88ab9f85f004f12a0f06fced092fd37cbda82103ae4e26fc18d629692f26529",
+        "occ_dc6b5effdd3d4d32689ef704be960837179dcaf69983fd2edea36a8c1a096f0f",
+        "occ_ddc77607500746b8895d0e16ccf1523cdd4eddaf4539a131085b46657735bc9d",
+        "occ_df80425de41920527a3c85778af917d732683ad13cea4f3c3096fc4a13576bb6",
+        "occ_e289eb1102fd69c9f56849aad9231f447cb7c4d24b422df1bc6b9abc09149f7f",
+        "occ_e5e9c60024ad9468df25368e0444efd42876173dc7a2051ef1a4e8b6d8988a57",
+        "occ_ef0caf7a2ba611ad2bc670a546437bc9242468b7a36558904fae4b23158b183c",
+        "occ_ef73bb93b6c517e7cab97a32eade81df70b3ad01dfebd5938969d4407d867e69",
+        "occ_fb2e1f40c8d59a05e9baa1f89f45d7297d8b621a2d08df3dc39e2a1d9250665b",
+        "occ_fe1a79325cf6201314c15fb2f537642c453527e5d37538d7585e5f33038e6af2",
+        "occ_ff11ef35eb05b2702a44701c5a48ffb11ddfe1ed595cd2b81119d31a241635c9"
+      ],
+      "files_sha256": "8eda4e66c371f9dbe78a72aa31ef33b3e7e6254588908172994dedcdb8876380",
+      "output_root_alias": "$OUTPUT_ROOT"
+    },
+    "output_root": "/var/folders/kj/yg0y66756l5_pt0mg1rjj95m0000gq/T/rea-extracted-265aa808-2452-4bc2-801e-977c3dd54f2c",
+    "artifacts": [
+      {
+        "artifact_id": "art_b86bb5aa8e7a1c1806379708e7cf7c6d6e2f2d2f92998632a71de4aa72fc664e",
+        "relative_path": "Canopy 2.app/Contents/CodeResources",
+        "sha256": "2f8572a03c176ee68498bd7aef1344ab43381fbaa4ee2f7e4275fb693302e4b6",
+        "bytes_written": 1821,
+        "created": true
+      },
+      {
+        "artifact_id": "art_30be9af924cbfa6b905446e8514aa8b5bde0bd5fe047d3b67bb4333b46f7173e",
+        "relative_path": "Canopy 2.app/Contents/Frameworks/MediaRemoteAdapter.framework/Versions/A/MediaRemoteAdapter",
+        "sha256": "acf0dff5b4805fea044af1d7010edf67c70778d15d707bfe9b55dea3d0b9babb",
+        "bytes_written": 213104,
+        "created": true
+      },
+      {
+        "artifact_id": "art_6bcfdf28c71911254c59902e8640cc04c466dd0d1930cbfc5d6c4fa3de3c86ce",
+        "relative_path": "Canopy 2.app/Contents/Frameworks/MediaRemoteAdapter.framework/Versions/A/Resources/Info.plist",
+        "sha256": "d88151d88a7fe2edf8076465b245cfb4461bccf00b0cd3e92b0b8419b46134e6",
+        "bytes_written": 684,
+        "created": true
+      },
+      {
+        "artifact_id": "art_da708727595f1a135d60518556dcbfb22dc13960a865b009a40f4896a3bd5344",
+        "relative_path": "Canopy 2.app/Contents/Frameworks/MediaRemoteAdapter.framework/Versions/A/_CodeSignature/CodeResources",
+        "sha256": "2faf346c15c308b31f3a67f99c80154e8f2c3730b9e852350753c2a199315e4d",
+        "bytes_written": 2442,
+        "created": true
+      },
+      {
+        "artifact_id": "art_8e9bbd1d49590b87d979cc290378a561e7ea4dd8f76ee4d3b3f86636186bddfd",
+        "relative_path": "Canopy 2.app/Contents/Frameworks/Sentry.framework/Versions/A/Resources/Info.plist",
+        "sha256": "4b9a129ed80e3d6e23dc8b9148945f6047df06f9dfda31bb943deca4736b2dba",
+        "bytes_written": 1329,
+        "created": true
+      },
+      {
+        "artifact_id": "art_ff64465ad7757225630d8a334c4b93c5d43926520e7bbf5ffb531c3d592042a3",
+        "relative_path": "Canopy 2.app/Contents/Frameworks/Sentry.framework/Versions/A/Resources/PrivacyInfo.xcprivacy",
+        "sha256": "118b16e0e97ffe8b6f1f01b7e04f68e5da764474a4d39d2933b0eeaef3cdc0ca",
+        "bytes_written": 2108,
+        "created": true
+      },
+      {
+        "artifact_id": "art_48a4bfe713b9ecf52a7ad552f8cee5c2ea14820d5b28f2a19bfbaffb0bb41857",
+        "relative_path": "Canopy 2.app/Contents/Frameworks/Sentry.framework/Versions/A/Sentry",
+        "sha256": "1125394bead14941069cea537a99c5e0caff0dccbefbf343a476ffc8f89cf85e",
+        "bytes_written": 82144,
+        "created": true
+      },
+      {
+        "artifact_id": "art_a276fc9df02d012fa9179f7104f4ee76212a6f22ef954636aed2c776e5019256",
+        "relative_path": "Canopy 2.app/Contents/Frameworks/Sentry.framework/Versions/A/_CodeSignature/CodeResources",
+        "sha256": "81fda308b0c611f6c8d4f97ce75dce758cc84b218d48299e477b03a9abfefdc6",
+        "bytes_written": 2690,
+        "created": true
+      },
+      {
+        "artifact_id": "art_5f88e91f6ca1f75a10e2614513c014cb1649ca5514d643bcde0f3fa49876c798",
+        "relative_path": "Canopy 2.app/Contents/Info.plist",
+        "sha256": "7f1e1aeecae52dda6981609d62318032db45823b9c2f2dd2b8866869ddc89ec5",
+        "bytes_written": 2547,
+        "created": true
+      },
+      {
+        "artifact_id": "art_3116e63bac467370fe24099475f872b09d6cfa34bfd0b36d4d8ffbf06adae2b8",
+        "relative_path": "Canopy 2.app/Contents/MacOS/Canopy v2",
+        "sha256": "fef42b33eae1493dc654fb626771515f34df19f69ece1e587e8925d1458550ef",
+        "bytes_written": 13437088,
+        "created": true
+      },
+      {
+        "artifact_id": "art_f62821860178cb98f4ebd6a586afb5f637766861bb2b71d908180f5228589837",
+        "relative_path": "Canopy 2.app/Contents/PkgInfo",
+        "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+        "bytes_written": 8,
+        "created": true
+      },
+      {
+        "artifact_id": "art_f0297f69a38d8aed2b2b2fbc545dd917b2cdba356cd9046973d2e1db718e09ff",
+        "relative_path": "Canopy 2.app/Contents/Resources/AppIcon.icns",
+        "sha256": "b4704b24560e13b9d0be4cbfc4efa8987976371f6b340e8ac4742ba567024efc",
+        "bytes_written": 81385,
+        "created": true
+      },
+      {
+        "artifact_id": "art_583bbe2db0cef46f01ad2c524bb7a996d04ae219931d729827afcc0e166e415a",
+        "relative_path": "Canopy 2.app/Contents/Resources/Assets.car",
+        "sha256": "1cc33caee13020261131f8ada143ce7ecd52f438e50f4cd0e4a46a8d31d03b45",
+        "bytes_written": 4109448,
+        "created": true
+      },
+      {
+        "artifact_id": "art_8787160f6e3634b7c1a252c1d06c1f75686f9a1603a86e917fe823033f7b2a62",
+        "relative_path": "Canopy 2.app/Contents/Resources/Click.m4a",
+        "sha256": "6b53ac441f3d2e726a86287fdae8317b72b14d0134599e517969fccbe288a247",
+        "bytes_written": 4337,
+        "created": true
+      },
+      {
+        "artifact_id": "art_55e5d0425a0ce354013f59fd06a414998d4d68edfe3c1940dbab385c23a131d5",
+        "relative_path": "Canopy 2.app/Contents/Resources/LockChime.wav",
+        "sha256": "48611d3999ca23eda3e401a335a616d34c56ee31cbcc37b453fb6bc2546b29ca",
+        "bytes_written": 82172,
+        "created": true
+      },
+      {
+        "artifact_id": "art_475a665779b60324db52dd2bc54237a82341dca6d7b96e9a593235e0dca2ef19",
+        "relative_path": "Canopy 2.app/Contents/Resources/MediaRemoteAdapter.framework/Versions/A/MediaRemoteAdapter",
+        "sha256": "0fb05b7d4619dfdddf828b088d192f8e43f280c517cbc1572fdfe25c8ae55c95",
+        "bytes_written": 213104,
+        "created": true
+      },
+      {
+        "artifact_id": "art_6bcfdf28c71911254c59902e8640cc04c466dd0d1930cbfc5d6c4fa3de3c86ce",
+        "relative_path": "Canopy 2.app/Contents/Resources/MediaRemoteAdapter.framework/Versions/A/Resources/Info.plist",
+        "sha256": "d88151d88a7fe2edf8076465b245cfb4461bccf00b0cd3e92b0b8419b46134e6",
+        "bytes_written": 684,
+        "created": true
+      },
+      {
+        "artifact_id": "art_da708727595f1a135d60518556dcbfb22dc13960a865b009a40f4896a3bd5344",
+        "relative_path": "Canopy 2.app/Contents/Resources/MediaRemoteAdapter.framework/Versions/A/_CodeSignature/CodeResources",
+        "sha256": "2faf346c15c308b31f3a67f99c80154e8f2c3730b9e852350753c2a199315e4d",
+        "bytes_written": 2442,
+        "created": true
+      },
+      {
+        "artifact_id": "art_5067e586668c92f77625e9d214d50a15e89bc5e17c30e35ebd21bcaabde0ef18",
+        "relative_path": "Canopy 2.app/Contents/Resources/Unlock.wav",
+        "sha256": "0bbd5b457cc5d156e96956ec4857d2a6080d4f0ab559c9fc57f2836b3620086e",
+        "bytes_written": 73772,
+        "created": true
+      },
+      {
+        "artifact_id": "art_1e615953d0397ec8f0cd05d32d1ac9ca6262532c195c1e3d0566cf9b820fc9ba",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-1.mov",
+        "sha256": "54332f65534c9af667a302e9c2df17e4420bffb94e93cecd0091b11a05e70efc",
+        "bytes_written": 351501,
+        "created": true
+      },
+      {
+        "artifact_id": "art_442eb82cb49ba9c8de7ebe56c0727b2a6323fc8ee8ae6a67ce8324164c32ae95",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-2.mov",
+        "sha256": "7815152e44f0d3576cae738b3bd82373ff3da0eddc9a8c180c73f512c56ce70f",
+        "bytes_written": 351960,
+        "created": true
+      },
+      {
+        "artifact_id": "art_ccc2ae2597c66085b0144003adde7ef1a11f82fe7e8ab5d179963b9bfe0f36d3",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-3.mov",
+        "sha256": "329be57b63f437e3329772b688440b825ae4b27ece16ac33c483d43b3725d0cf",
+        "bytes_written": 391452,
+        "created": true
+      },
+      {
+        "artifact_id": "art_8c1848839fef240a143c2474932e01341a5690c6453954a24af225210150a012",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-4.mov",
+        "sha256": "04b9bce0be1bb910c10d7466b795e0909cbf70d6b62e5f227124d7c67bc9b53a",
+        "bytes_written": 352641,
+        "created": true
+      },
+      {
+        "artifact_id": "art_ccc6ccf22a60857d0fdfb95e32c775e8af5d85b48612840e18849d34f2f6a97e",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-max-15.mov",
+        "sha256": "b587c84649e0f3986d59b46fab527a15b2c8146eb9c57a523a2e899afe41ac20",
+        "bytes_written": 476065,
+        "created": true
+      },
+      {
+        "artifact_id": "art_3cd162a34eed331b55d6fb8d686dbdd8ea2af263f2d5bcec61341bddda4b6532",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-max-16.mov",
+        "sha256": "0384db4e0ad854689628be1f2d9f4607ad6c2cf6f99a5363782feb5e2961c15e",
+        "bytes_written": 630205,
+        "created": true
+      },
+      {
+        "artifact_id": "art_e5f5e34ef14be8f19bca34f3e3cc66bf3500f7a033686f598276c3540c3e1c38",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-max-17.mov",
+        "sha256": "6964adb324449ab4754f310fbd42cae4191e8daa1641b6a781f2d42aa3b32abe",
+        "bytes_written": 632447,
+        "created": true
+      },
+      {
+        "artifact_id": "art_1422e8dbb55b99e6961e3c38dc4246d824f08f9534aaa15f86d70557f4743223",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-max-18.mov",
+        "sha256": "beb6c3a9af3c7332678508c5c9059a6cdd499050552079570798be77e8db6be9",
+        "bytes_written": 384364,
+        "created": true
+      },
+      {
+        "artifact_id": "art_6a3074b2195cf6373d64e3201d0c1bacbf89676d7b8e7b2ab1088b52cc6bb7a4",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-max-19.mov",
+        "sha256": "88984da450dfbda4270f56d7076dcddb6e04760766eea9cfc4d8cc5e00ff671c",
+        "bytes_written": 392896,
+        "created": true
+      },
+      {
+        "artifact_id": "art_f14c7247e57d696d751d5403dc30954365df5fcb3275bc81f644ac1f4cfd51d7",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-max-2.mov",
+        "sha256": "10e9b26e8b09ef28646aed268389ff005304ab79089a06d056bab57f86d3e251",
+        "bytes_written": 670552,
+        "created": true
+      },
+      {
+        "artifact_id": "art_210ab4520f5a1e1b8910f35b993fef42afa8d9fcd4c50c01872cbd2be62879ea",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-max-20.mov",
+        "sha256": "f05b4a261fd084013015102057ab5922b69e6a27d1f4805355225c706d7dd679",
+        "bytes_written": 385189,
+        "created": true
+      },
+      {
+        "artifact_id": "art_477e976ae1f8a17fa8f9755513b52cd30b641ae0afdd1361e0af60690d099c6a",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-max-21.mov",
+        "sha256": "d99115312540f660de2d2795599eb6eac838e7acc5cf3fae3e478aaf00b4b6d6",
+        "bytes_written": 385314,
+        "created": true
+      },
+      {
+        "artifact_id": "art_0778e2509ffd05ad98f8a8858366aab87f53d36b9e1ed5030f5a13a4271778b4",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-max-22.mov",
+        "sha256": "e27b7b5d3c69946ea21cc073c6f63429af7b629fde7fc5ba21bc17bdcf5ae2c2",
+        "bytes_written": 394481,
+        "created": true
+      },
+      {
+        "artifact_id": "art_b500dee73e59a4eb1ca9fda73d53dfe89b89998f3f5a88f8882a49afa6a4aa75",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-max-3.mov",
+        "sha256": "cdd865435c29f0b82b685d109d0e020c8628906c6b10b81aa06516ea23b13867",
+        "bytes_written": 566868,
+        "created": true
+      },
+      {
+        "artifact_id": "art_3cd162a34eed331b55d6fb8d686dbdd8ea2af263f2d5bcec61341bddda4b6532",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-max-default.mov",
+        "sha256": "0384db4e0ad854689628be1f2d9f4607ad6c2cf6f99a5363782feb5e2961c15e",
+        "bytes_written": 630205,
+        "created": true
+      },
+      {
+        "artifact_id": "art_a744a3e7e0cb848d65f00f82496b893d498927d4ff710bf450e6d162ca30c396",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-pro-2.mov",
+        "sha256": "c2be0bc5150dd21d85c9d64a18ec5a782279e30980996e726a6c8d3a8cecb775",
+        "bytes_written": 463126,
+        "created": true
+      },
+      {
+        "artifact_id": "art_00618ff1fd0824bf5b693eb8a4b7d2cd8443afcc6390cbefc0be0b8d3bd58117",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-pro-3.mov",
+        "sha256": "df3275c52a9599dbd5768aba279c8904037925bbed6a02a2166a0a01fb730875",
+        "bytes_written": 398759,
+        "created": true
+      },
+      {
+        "artifact_id": "art_6ca250d305204be817b1371285f3d291ef6cc05a0c2103f0766e076e5961b0b3",
+        "relative_path": "Canopy 2.app/Contents/Resources/airpods-pro.mov",
+        "sha256": "05065a8f0086ea69434b13e099e4cce1e6b4c269cce6681eb052ccba3a3b4ea3",
+        "bytes_written": 438891,
+        "created": true
+      },
+      {
+        "artifact_id": "art_9cde73b6aef5df5184e3a896b1203dee86813933353a43565562e7a421b074d3",
+        "relative_path": "Canopy 2.app/Contents/Resources/ar.lproj/InfoPlist.strings",
+        "sha256": "661b7626ce2fb970f37508e1b4110aa0c06688c9e143c033a48cbe080b1cad03",
+        "bytes_written": 1828,
+        "created": true
+      },
+      {
+        "artifact_id": "art_ad2994ba5e5cbbce4300d84d6d5843f90d713cf36bfa12fb65d1dad375cdc4da",
+        "relative_path": "Canopy 2.app/Contents/Resources/ar.lproj/Localizable.strings",
+        "sha256": "f1938ddad84a3189a06f61e5a008975c1fc6cb3775466266aa68665b2ab3b447",
+        "bytes_written": 27996,
+        "created": true
+      },
+      {
+        "artifact_id": "art_3dd1f583fc1cfb4bb39a5025f77e9e1dc6e66f4858df86f132cb11765084b36c",
+        "relative_path": "Canopy 2.app/Contents/Resources/de.lproj/InfoPlist.strings",
+        "sha256": "4197ba52312063770ac9b102c0bf00e3b142f95f5556f748d50b84c7e4a97b9a",
+        "bytes_written": 2058,
+        "created": true
+      },
+      {
+        "artifact_id": "art_0026cddf001145d2d05fc30e01b85cef9699e6431950e641a9d65777eeeb7d7a",
+        "relative_path": "Canopy 2.app/Contents/Resources/de.lproj/Localizable.strings",
+        "sha256": "97ff2e4e303876b5ee3d213bc4bd8116ce16843223c4a1f069c793a3e683bbd0",
+        "bytes_written": 29994,
+        "created": true
+      },
+      {
+        "artifact_id": "art_15e5678908b2110f79e786ea6370ad8061fb26069fe5a60cf84bb6de4a013963",
+        "relative_path": "Canopy 2.app/Contents/Resources/default.metallib",
+        "sha256": "d84ab1b542efd52bb5c70185be6174fbf17768e1f178eb65072c7f332baee562",
+        "bytes_written": 30480,
+        "created": true
+      },
+      {
+        "artifact_id": "art_06fe957dd9e718e515484fe073090638b07ba2e8eddcc914fc8fb62dbd34924e",
+        "relative_path": "Canopy 2.app/Contents/Resources/default.profraw",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes_written": 0,
+        "created": true
+      },
+      {
+        "artifact_id": "art_cfea06dade58395022a542e04c78492d740e38437566276c84690b235d5a98a4",
+        "relative_path": "Canopy 2.app/Contents/Resources/en.lproj/Localizable.strings",
+        "sha256": "63188c3b1ccaa1c011a22d3bc21e9e1ebf457611b795e48860468c8588e58f63",
+        "bytes_written": 11282,
+        "created": true
+      },
+      {
+        "artifact_id": "art_efc688cc594ff59189702c7ffc25702739be4c5b870d12139f808fae70dcd78a",
+        "relative_path": "Canopy 2.app/Contents/Resources/es.lproj/InfoPlist.strings",
+        "sha256": "5dc6761b3f9be6748d8fd225aa0a766c8d5d44db2551fa9bfe32616d9073b5ab",
+        "bytes_written": 2102,
+        "created": true
+      },
+      {
+        "artifact_id": "art_ddb84e76c50b4d3ebb8af930b7dd8c58c45035e18221b61788393a4f5632ba3b",
+        "relative_path": "Canopy 2.app/Contents/Resources/es.lproj/Localizable.strings",
+        "sha256": "b903fdf7f6cb16ea7c1893a5b7072bf053d0b239f09d60eb6efb86dc5a59c418",
+        "bytes_written": 30570,
+        "created": true
+      },
+      {
+        "artifact_id": "art_8e3d6d367ea532e01b24ddf95ca602080e17bee3f8c1ad4e32d8e7ec96c844a5",
+        "relative_path": "Canopy 2.app/Contents/Resources/fr.lproj/InfoPlist.strings",
+        "sha256": "9bc6aff3eb1496ff6d790fbf23ed4f9bf2d0ca5739e3144f7f25a6488a5aa8f7",
+        "bytes_written": 2192,
+        "created": true
+      },
+      {
+        "artifact_id": "art_cf8c7422aa6ea0d56a16955e7d85e98a4834faac9ae05f40fbd81e5cc9f29f0d",
+        "relative_path": "Canopy 2.app/Contents/Resources/fr.lproj/Localizable.strings",
+        "sha256": "84769b1717969d248ed4488e1e1b23cf77cd1f079c43783e2d99714cf7a38c14",
+        "bytes_written": 30828,
+        "created": true
+      },
+      {
+        "artifact_id": "art_40993e60304fe406a2601215704452d5f1d2a683a76c2aee905ec936c60c3be0",
+        "relative_path": "Canopy 2.app/Contents/Resources/id.lproj/InfoPlist.strings",
+        "sha256": "91f3783bb4fa1ca5d8971c20e3ec8c41c5b5185b8a0fb18314282dcc67bd20ca",
+        "bytes_written": 1986,
+        "created": true
+      },
+      {
+        "artifact_id": "art_3172f0c5eb7a8eda268c9ab0ba7e4d5b2e050b28881fde76741b6e9a8972da35",
+        "relative_path": "Canopy 2.app/Contents/Resources/id.lproj/Localizable.strings",
+        "sha256": "f7c2b4a4102ff46fec48b7456807697d749d40ea665059941c3dcc06f751ad95",
+        "bytes_written": 29328,
+        "created": true
+      },
+      {
+        "artifact_id": "art_48951992701001a58526fc5d550a4f4fa88bc96d383f53da4512adfd48063504",
+        "relative_path": "Canopy 2.app/Contents/Resources/it.lproj/InfoPlist.strings",
+        "sha256": "dc78ab48fcbc4345468b31559f27b27167220324949f90aecfcb1f4b531f07f7",
+        "bytes_written": 2108,
+        "created": true
+      },
+      {
+        "artifact_id": "art_6cc08a6af80f46a9de699f73a9499345b58acce6cf294fb83e0bff1a1fed16cb",
+        "relative_path": "Canopy 2.app/Contents/Resources/it.lproj/Localizable.strings",
+        "sha256": "39812db323bb00eecd22071d63835960e4a220e9f8ee62cba43a651d45cbcbc6",
+        "bytes_written": 30294,
+        "created": true
+      },
+      {
+        "artifact_id": "art_742a3a16a77fa56dc8e960bd83cff36fe0cec330699feacaf92cc53dc204380e",
+        "relative_path": "Canopy 2.app/Contents/Resources/ja.lproj/InfoPlist.strings",
+        "sha256": "c132cbd02b09deeb1f23e172af660002aa805bc2a9721d5af1cee026cb285239",
+        "bytes_written": 1642,
+        "created": true
+      },
+      {
+        "artifact_id": "art_7c4a97222a5b1460c856c478e7a182726eff8df77ea6f8b2172fc1599d71e4e3",
+        "relative_path": "Canopy 2.app/Contents/Resources/ja.lproj/Localizable.strings",
+        "sha256": "c4fd8f5f6b5c9978ddad2a97ec0af0908fb3a46c8c2e4086278f4bc31036f4ec",
+        "bytes_written": 25226,
+        "created": true
+      },
+      {
+        "artifact_id": "art_0be6f1afa8c6d48f0a6185df0c4026a73e074255814a59a775adf020da08b228",
+        "relative_path": "Canopy 2.app/Contents/Resources/ko.lproj/InfoPlist.strings",
+        "sha256": "24bd419d1bf332d7efbee4ccf910d0c9c307ac1299ecc8551cafb80321968af3",
+        "bytes_written": 1678,
+        "created": true
+      },
+      {
+        "artifact_id": "art_9e81b00139f05ca0da8cdf176511982141b828afca2ea2fbd0a37ba5713f1ff4",
+        "relative_path": "Canopy 2.app/Contents/Resources/ko.lproj/Localizable.strings",
+        "sha256": "a4b5a9a9a6634d8070103f422b39715c40dc9de57542ddb8479f5ff2b2990e54",
+        "bytes_written": 25158,
+        "created": true
+      },
+      {
+        "artifact_id": "art_587b0be4289a33c3719bfa9d3df298eb4735a5fc7379df89ddf67c0075ee10ad",
+        "relative_path": "Canopy 2.app/Contents/Resources/mediaremote-adapter.pl",
+        "sha256": "99432b913228f2e6b7dc18d45f9dafcc1cffbf08b44b75a7a44b1169655be2ed",
+        "bytes_written": 2569,
+        "created": true
+      },
+      {
+        "artifact_id": "art_5b628bcf00256b349eb71fe96bbdabc65b864dbc4b1a6d2a149d9c2af5a5e9ce",
+        "relative_path": "Canopy 2.app/Contents/Resources/pt-BR.lproj/InfoPlist.strings",
+        "sha256": "0565762a68ca29d946620fc4ef42574e9eb27e31a0ef15c1daebdccf28730ae0",
+        "bytes_written": 2074,
+        "created": true
+      },
+      {
+        "artifact_id": "art_3af420cdf07d02e79f691ca7e3ecc0f7531622f3824f95ccf010e0475402b8c6",
+        "relative_path": "Canopy 2.app/Contents/Resources/pt-BR.lproj/Localizable.strings",
+        "sha256": "b02955a7c7921a7ef256b026fdc7cadd17f291636806523d46252e492dc51bae",
+        "bytes_written": 30064,
+        "created": true
+      },
+      {
+        "artifact_id": "art_48c5e7511c028c609b4a1a0f5a9dcbbb15d17927321c1faf3c71b8303cd8392f",
+        "relative_path": "Canopy 2.app/Contents/Resources/ru.lproj/InfoPlist.strings",
+        "sha256": "f0d44eba30a0fb03441d34e849c5fb2653837ff390fb8a3a9448178164a2f10b",
+        "bytes_written": 2108,
+        "created": true
+      },
+      {
+        "artifact_id": "art_76fbef04a34e71f45ed510b6989bfd3cf1ec3e3be8bedde7129ef060cf121a0d",
+        "relative_path": "Canopy 2.app/Contents/Resources/ru.lproj/Localizable.strings",
+        "sha256": "c665fcbdfffcea84cec6622d0ea1362f30450e4f5f91c77f5833c009dc71a75f",
+        "bytes_written": 29682,
+        "created": true
+      },
+      {
+        "artifact_id": "art_81577da89683cdfafcbbdd4f6b3d79659fa84939f43f7bd976cb7b7c1f73c2be",
+        "relative_path": "Canopy 2.app/Contents/Resources/tr.lproj/InfoPlist.strings",
+        "sha256": "5160aae85639f8c2796580c7f2a9ac47ef64e58d7b48410158b4565e669c147b",
+        "bytes_written": 2010,
+        "created": true
+      },
+      {
+        "artifact_id": "art_eb8a38615aac09e83be774bfd163d406f325c6deec3241183096c26caa9294fc",
+        "relative_path": "Canopy 2.app/Contents/Resources/tr.lproj/Localizable.strings",
+        "sha256": "d73fe3e4bd18362084fa7b885ae90a7f532397f9053e6f92148dc888fdddce34",
+        "bytes_written": 29272,
+        "created": true
+      },
+      {
+        "artifact_id": "art_710ade7346cb21e1d83a1c3030b2b70fe81f8f1f2456d55b00ee17655cc19ea6",
+        "relative_path": "Canopy 2.app/Contents/Resources/zh-Hans.lproj/InfoPlist.strings",
+        "sha256": "c4281d2ee3c67e0e7a7d01e5df353875dd199d056d1902bc31b5f38ac1da9eda",
+        "bytes_written": 1504,
+        "created": true
+      },
+      {
+        "artifact_id": "art_6fb68fa93a6c0d777fab2ebec1ed0782030ee61b29c74a86a96b45a43945c925",
+        "relative_path": "Canopy 2.app/Contents/Resources/zh-Hans.lproj/Localizable.strings",
+        "sha256": "629c921db62c611d2d3cba02934ea73e0e85643b367dffc4632d7def950dfee4",
+        "bytes_written": 23650,
+        "created": true
+      },
+      {
+        "artifact_id": "art_8018a5eb98aec04e9b32b25a38094db18a6a9f2377f2da1e7d36da0756fbe0fc",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Info.plist",
+        "sha256": "a636dff788e927362dc61394280fcb8e08a39fc36f52f781c4fb7fa0d5c1e0a1",
+        "bytes_written": 1471,
+        "created": true
+      },
+      {
+        "artifact_id": "art_80279e09ebec6a7b323f70faa54fdf3baaf4d9423799f339600603ada28320e9",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/MacOS/CanopyHelper",
+        "sha256": "bafabff3ded22c04b063e3dbe1b016d9fc6cc2f81f013f2b64cd515a39eaf56a",
+        "bytes_written": 89472,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/ar.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/de.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/es.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/fr.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/id.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/it.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/ja.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/ko.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/pt-BR.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/ru.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/tr.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_854e31319a736cf011fbf45ef06988418abff951b2721667823fb79b10d11677",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/zh-Hans.lproj/InfoPlist.strings",
+        "sha256": "d5212c5ed357118d9538439299fd0333c89bc1c1e448e83ca567c417f0c47cf0",
+        "bytes_written": 728,
+        "created": true
+      },
+      {
+        "artifact_id": "art_84295e44aa6f6ec6579b3c8be865d7366b7bbb9b90b636d0b7796abee3e9c3cc",
+        "relative_path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/_CodeSignature/CodeResources",
+        "sha256": "296a2eec6927535f246b767809306a60c735a001e0cbbcb0503fd6815fcb8c8d",
+        "bytes_written": 6636,
+        "created": true
+      },
+      {
+        "artifact_id": "art_082b5e9609f70bedf68efcce8b6ff94a06dcb5fca9e4a3a87679243057007720",
+        "relative_path": "Canopy 2.app/Contents/_CodeSignature/CodeResources",
+        "sha256": "256c464db23f8bc06554f11eb27b9ad5f83be367ec97393b2bdf0765af6779b4",
+        "bytes_written": 20716,
+        "created": true
+      },
+      {
+        "artifact_id": "art_8a2aa366ec3e56d24000ecbe4f43ca8c8c69b5ae2e0983baa5017b0c8e48a1ed",
+        "relative_path": "Canopy 2.app/Contents/embedded.provisionprofile",
+        "sha256": "02d02ff29596865b6feb0231ac287818a9445d3059a8bec279d856e14aedaebc",
+        "bytes_written": 12524,
+        "created": true
+      },
+      {
+        "artifact_id": "art_60f9b30fb68975b3bbbb8c3b32ffba7df2ac652c0a762d49096fc354d9a18447",
+        "relative_path": "__MACOSX/Canopy 2.app/Contents/Frameworks/MediaRemoteAdapter.framework/Versions/A/._MediaRemoteAdapter",
+        "sha256": "42a2f4dd3ef0fd197b7d75faf25ebfe3164b0f53ad37bdd98bda64e64ff5ba7b",
+        "bytes_written": 212,
+        "created": true
+      },
+      {
+        "artifact_id": "art_879e76f4abf621fb0d81043800b02b3d61656485c7871bfaed64bc56a9e2a7d3",
+        "relative_path": "__MACOSX/Canopy 2.app/Contents/Frameworks/MediaRemoteAdapter.framework/Versions/A/Resources/._Info.plist",
+        "sha256": "77143750191cb793d0c06585228dbbb531cba7bf8d81ecbd334c0fc6fc6fc9db",
+        "bytes_written": 212,
+        "created": true
+      }
+    ],
+    "containment_verified": true,
+    "cleanup": {
+      "attempted": false,
+      "verified": true,
+      "residual_paths": []
+    },
+    "provenance": [],
+    "limitations": [
+      "All regular files in the active artifact were materialized; nested archive contents remain represented by their containing file."
+    ]
+  },
+  "confidence": "observed",
+  "authority": "shipped-artifact",
+  "environment": null,
+  "limitations": [
+    "All regular files in the active artifact were materialized; nested archive contents remain represented by their containing file."
+  ],
+  "locations": [
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/CodeResources"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Frameworks/MediaRemoteAdapter.framework/Versions/A/MediaRemoteAdapter"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Frameworks/MediaRemoteAdapter.framework/Versions/A/Resources/Info.plist"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Frameworks/MediaRemoteAdapter.framework/Versions/A/_CodeSignature/CodeResources"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Frameworks/Sentry.framework/Versions/A/Resources/Info.plist"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Frameworks/Sentry.framework/Versions/A/Resources/PrivacyInfo.xcprivacy"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Frameworks/Sentry.framework/Versions/A/Sentry"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Frameworks/Sentry.framework/Versions/A/_CodeSignature/CodeResources"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Info.plist"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/MacOS/Canopy v2"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/PkgInfo"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/AppIcon.icns"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/Assets.car"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/Click.m4a"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/LockChime.wav"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/MediaRemoteAdapter.framework/Versions/A/MediaRemoteAdapter"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/MediaRemoteAdapter.framework/Versions/A/Resources/Info.plist"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/MediaRemoteAdapter.framework/Versions/A/_CodeSignature/CodeResources"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/Unlock.wav"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-1.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-2.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-3.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-4.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-max-15.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-max-16.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-max-17.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-max-18.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-max-19.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-max-2.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-max-20.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-max-21.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-max-22.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-max-3.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-max-default.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-pro-2.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-pro-3.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/airpods-pro.mov"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/ar.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/ar.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/de.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/de.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/default.metallib"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/default.profraw"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/en.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/es.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/es.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/fr.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/fr.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/id.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/id.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/it.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/it.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/ja.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/ja.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/ko.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/ko.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/mediaremote-adapter.pl"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/pt-BR.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/pt-BR.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/ru.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/ru.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/tr.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/tr.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/zh-Hans.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/Resources/zh-Hans.lproj/Localizable.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Info.plist"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/MacOS/CanopyHelper"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/ar.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/de.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/es.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/fr.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/id.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/it.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/ja.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/ko.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/pt-BR.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/ru.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/tr.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/Resources/zh-Hans.lproj/InfoPlist.strings"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/XPCServices/CanopyHelper.xpc/Contents/_CodeSignature/CodeResources"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/_CodeSignature/CodeResources"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "Canopy 2.app/Contents/embedded.provisionprofile"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "__MACOSX/Canopy 2.app/Contents/Frameworks/MediaRemoteAdapter.framework/Versions/A/._MediaRemoteAdapter"
+    },
+    {
+      "kind": "artifact-path",
+      "path": "__MACOSX/Canopy 2.app/Contents/Frameworks/MediaRemoteAdapter.framework/Versions/A/Resources/._Info.plist"
+    }
+  ],
+  "evidence_links": []
+}

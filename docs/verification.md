@@ -1,0 +1,64 @@
+# Verification
+
+Work why: Deliver a standalone Mac app with a small notch interface, and record what was directly checked.
+
+Checked on 2026-10-22 with an Apple silicon MacBook Pro, macOS 26.6.2, Apple Swift 6.3.3, and Rust 1.99.0. No unit or integration tests were added or run, as requested.
+
+## Build and package
+
+- `./scripts/build.sh`: passed for the host Mac.
+- `./scripts/package.sh`: passed for the final universal app, DMG, ZIP, and checksums.
+- `lipo -archs 'dist/Mac Island.app/Contents/MacOS/MacIsland'`: reported `x86_64 arm64`.
+- `hdiutil verify dist/Mac-Island.dmg`: reported a valid checksum.
+- `(cd dist && shasum -a 256 -c SHA256SUMS.txt)`: both download files passed.
+- `cargo fmt --manifest-path core/Cargo.toml -- --check`: passed.
+- `cargo clippy --manifest-path core/Cargo.toml -- -D warnings`: passed.
+- `bash -n scripts/setup-google-drive.sh`: passed. The wizard was not run; its steps require the user's Google Cloud project.
+- `zsh -n scripts/build.sh scripts/package.sh`: passed.
+- `plutil -lint scripts/Info.plist scripts/MacIsland.entitlements`: passed.
+- `codesign --verify --strict --verbose=2 '/Applications/Mac Island.app'`: passed.
+- `otool -L '/Applications/Mac Island.app/Contents/MacOS/MacIsland'`: showed only Apple system frameworks and Swift system libraries. No source-checkout or Rust archive path is needed at runtime.
+
+The first multi-architecture SwiftPM command required an unavailable XCBuild executable. The package script now builds each target triple separately and uses `lipo` to combine them. Both the Apple silicon and Intel compilation and link steps passed. `hdiutil` created the disk image. ZIP and SHA-256 files were also generated. See the release assets for the final package.
+
+## Direct UI evidence
+
+The app was copied to `/Applications/Mac Island.app` and started from that path. Its compact notch view and expanded controls were read through the native accessibility tree and screenshots.
+
+Observed in this task:
+
+- The black compact island and color Spotify cover.
+- A live Spotify title and artist, plus playing and paused states, in native app screenshots. The user also supplied a screenshot with the playing indicator visible.
+- A song-title button, song-position control, previous/play/next buttons, and device action in the revised player.
+- Three sections: Now Playing, File Tray, and Devices.
+- Explicit pin and collapse controls. Opening did not select the pin. After an unpinned opening, a later accessibility snapshot showed the compact state again.
+- The Google Drive button in File Tray opened the installed app's native Google Drive setup window. The window showed client JSON import, setup instructions, and Connect Account. No credentials were imported.
+- The native file chooser added the repository README to the tray in the earlier build. Remove cleared its tray reference, and `test -f README.md` confirmed that the source file remained.
+- The user's weather screenshot showed a current temperature and condition. The badge was then moved to the top right. Coordinates were not written to the repository.
+- Screen inspection reported the built-in display as 1512 × 982 points, with a 32-point notch area. The left and right safe areas placed the camera gap at x=665…850. The app uses these values and checks `CGDisplayIsBuiltin`.
+- A window-list inspection showed the animation canvas at y=-24. Its top padding places the visible island at the physical top edge.
+
+The Mac battery view was removed from the app. The compact notch height now follows the 32-point system notch area. Devices uses small scrolling rows. CoreAudio supplies output-device changes, connection type, and volume. The app does not put the island on an external display.
+
+## Resource observations
+
+`ps -axo pid,rss,%cpu,etime,comm` was used for direct process samples. An earlier revision used 47,984 KiB resident memory with a sampled 0.0% CPU. The standalone app installed in Applications later showed 29,952 KiB with a sampled 0.0% CPU while idle. These are individual samples, not a peak or long-term bound. Build compiler processes were separate and were not counted as app resource use.
+
+The Rust core is a static library in the app process. It has no network client, polling thread, or unbounded cache. Swift schedules only requested close deadlines. Current album art is decoded to at most 160 pixels per side. Google transfer bodies use URLSession file uploads and file downloads. The progress display redraws while playing; it does not request Spotify state every second.
+
+## Checks still needed
+
+- Physical trackpad swipe direction and thresholds, including restore while hidden.
+- Native Finder drag delivery into the notch in the final build, drag-out delivery, and multi-file drags. The app has native window drag registration and a SwiftUI drop fallback; delivery was not fully checked with Finder after the final change.
+- Several connected headphones or HDMI/DisplayPort devices. Those hardware cases were not available for a direct check. Unknown device battery data remains unknown.
+- Lid-close and external-monitor-only operation. The code hides without a built-in display; this was not checked by closing the user's lid.
+- Secure lock-screen display. The menu preview and lock-event adapter are implemented, but the secure login window was not exercised.
+- Google sign-in, token refresh, browsing, export, download, and upload with a real OAuth client. No client was supplied, so no Google account was connected and no cloud files were transferred.
+- Intel runtime and macOS 14 runtime. Both target architectures compile, but only Apple silicon on this Mac was available to run.
+- VoiceOver, reduced motion, and a full keyboard-navigation pass.
+
+## Scope and external services
+
+The app installation and GitHub publication were requested by the user. The source folder started empty, with no existing changes. All new files serve the app, its build, setup, or evidence.
+
+Public Canopy pages and its public release were used for the initial inspection. Apple, Google, and Open-Meteo documentation was read. GitHub stores the source and app download. No database was used. No Canopy code or artwork was copied. No production database, Google cloud file, sharing permission, or Google account credential was changed during development.

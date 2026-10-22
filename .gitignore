@@ -1,0 +1,8 @@
+.build/
+dist/
+core/target/
+.DS_Store
+.env
+.env.*
+client_secret*.json
+credentials*.json

@@ -1,0 +1,185 @@
+{
+  "evidence_id": "ev_5a9fda5bf208dcda95a397d83e25af2c91520acc4c506c1427504c9ca3aa689d",
+  "subject": {
+    "name": "Canopy v2",
+    "digest": {
+      "sha256": "fef42b33eae1493dc654fb626771515f34df19f69ece1e587e8925d1458550ef"
+    },
+    "format": "mach-o",
+    "architecture": "arm64",
+    "local_path": "/private/var/folders/kj/yg0y66756l5_pt0mg1rjj95m0000gq/T/rea-extracted-265aa808-2452-4bc2-801e-977c3dd54f2c/Canopy 2.app/Contents/MacOS/Canopy v2"
+  },
+  "provider": {
+    "id": "native-macos",
+    "name": "macOS native inspection utilities",
+    "version": null
+  },
+  "analysis_profile": null,
+  "predicate_type": "rea.analysis",
+  "operation": "inspect_signature",
+  "parameters": {},
+  "raw_result": {
+    "provenance": [
+      {
+        "tool": "codesign",
+        "command": [
+          "/usr/bin/codesign",
+          "-d",
+          "--verbose=4",
+          "$ARTIFACT"
+        ],
+        "tool_version": null,
+        "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+        "executable_sha256": "844d30a12929b59c9f2215e2a308c3e1db572831a478f35906e452a54025603e",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "stdout_bytes": 0,
+        "stderr_bytes": 1080
+      },
+      {
+        "tool": "codesign",
+        "command": [
+          "/usr/bin/codesign",
+          "-d",
+          "-r-",
+          "$ARTIFACT"
+        ],
+        "tool_version": null,
+        "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+        "executable_sha256": "844d30a12929b59c9f2215e2a308c3e1db572831a478f35906e452a54025603e",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "stdout_bytes": 315,
+        "stderr_bytes": 99
+      },
+      {
+        "tool": "codesign",
+        "command": [
+          "/usr/bin/codesign",
+          "-d",
+          "--entitlements",
+          ":-",
+          "$ARTIFACT"
+        ],
+        "tool_version": null,
+        "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+        "executable_sha256": "844d30a12929b59c9f2215e2a308c3e1db572831a478f35906e452a54025603e",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "stdout_bytes": 903,
+        "stderr_bytes": 187
+      }
+    ]
+  },
+  "normalized_result": {
+    "signed": true,
+    "identifier": "com.CanopyV2.canopy",
+    "team_identifier": "DQA3B69345",
+    "format": "Mach-O universal (x86_64 arm64)",
+    "cdhashes": [
+      "42e8bc2c5727c04bff0241b0307fedf788897999"
+    ],
+    "hash_algorithms": [
+      "sha256"
+    ],
+    "authorities": [
+      "Developer ID Application: Ardalan Jalili (DQA3B69345)",
+      "Developer ID Certification Authority",
+      "Apple Root CA"
+    ],
+    "designated_requirement": "anchor apple generic and identifier \"com.CanopyV2.canopy\" and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = DQA3B69345)",
+    "entitlements": {
+      "com.apple.application-identifier": "DQA3B69345.com.CanopyV2.canopy",
+      "com.apple.developer.team-identifier": "DQA3B69345",
+      "com.apple.developer.weatherkit": true,
+      "com.apple.security.app-sandbox": false,
+      "com.apple.security.automation.apple-events": true,
+      "com.apple.security.cs.allow-dyld-environment-variables": true,
+      "com.apple.security.cs.disable-library-validation": true,
+      "com.apple.security.network.client": true,
+      "com.apple.security.personal-information.location": true,
+      "com.apple.security.temporary-exception.apple-events": [
+        "com.spotify.client",
+        "com.apple.Music"
+      ]
+    },
+    "timestamp": "Oct 5, 2026 at 6:13:38 PM",
+    "hardened_runtime": true,
+    "provenance": [
+      {
+        "tool": "codesign",
+        "command": [
+          "/usr/bin/codesign",
+          "-d",
+          "--verbose=4",
+          "$ARTIFACT"
+        ],
+        "tool_version": null,
+        "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+        "executable_sha256": "844d30a12929b59c9f2215e2a308c3e1db572831a478f35906e452a54025603e",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "stdout_bytes": 0,
+        "stderr_bytes": 1080
+      },
+      {
+        "tool": "codesign",
+        "command": [
+          "/usr/bin/codesign",
+          "-d",
+          "-r-",
+          "$ARTIFACT"
+        ],
+        "tool_version": null,
+        "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+        "executable_sha256": "844d30a12929b59c9f2215e2a308c3e1db572831a478f35906e452a54025603e",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "stdout_bytes": 315,
+        "stderr_bytes": 99
+      },
+      {
+        "tool": "codesign",
+        "command": [
+          "/usr/bin/codesign",
+          "-d",
+          "--entitlements",
+          ":-",
+          "$ARTIFACT"
+        ],
+        "tool_version": null,
+        "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+        "executable_sha256": "844d30a12929b59c9f2215e2a308c3e1db572831a478f35906e452a54025603e",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "stdout_bytes": 903,
+        "stderr_bytes": 187
+      }
+    ],
+    "limitations": [
+      "Entitlements and designated requirements require separate bounded commands.",
+      "Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined."
+    ]
+  },
+  "confidence": "observed",
+  "authority": "shipped-artifact",
+  "environment": null,
+  "limitations": [
+    "Entitlements and designated requirements require separate bounded commands.",
+    "Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined."
+  ],
+  "locations": [],
+  "evidence_links": []
+}

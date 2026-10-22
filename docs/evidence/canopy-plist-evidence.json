@@ -1,0 +1,168 @@
+{
+  "evidence_id": "ev_cc18f9cba2655eb6745751749465a0944b53e2a074172de319c163ef7a748957",
+  "subject": {
+    "name": "Canopy v2",
+    "digest": {
+      "sha256": "fef42b33eae1493dc654fb626771515f34df19f69ece1e587e8925d1458550ef"
+    },
+    "format": "mach-o",
+    "architecture": "arm64",
+    "local_path": "/private/var/folders/kj/yg0y66756l5_pt0mg1rjj95m0000gq/T/rea-extracted-265aa808-2452-4bc2-801e-977c3dd54f2c/Canopy 2.app/Contents/MacOS/Canopy v2"
+  },
+  "provider": {
+    "id": "native-macos",
+    "name": "macOS native inspection utilities",
+    "version": null
+  },
+  "analysis_profile": null,
+  "predicate_type": "rea.analysis",
+  "operation": "inspect_plist",
+  "parameters": {},
+  "raw_result": {
+    "provenance": [
+      {
+        "tool": "file",
+        "command": [
+          "/usr/bin/file",
+          "-b",
+          "$PLIST"
+        ],
+        "tool_version": null,
+        "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+        "executable_sha256": "71b961b48f02422bb2e7f653be4e1de9af1527a91e9e1a614c6bc7855cf45f7c",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "stdout_bytes": 48,
+        "stderr_bytes": 0
+      },
+      {
+        "tool": "plutil",
+        "command": [
+          "/usr/bin/plutil",
+          "-convert",
+          "json",
+          "-o",
+          "-",
+          "--",
+          "$PLIST"
+        ],
+        "tool_version": null,
+        "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+        "executable_sha256": "3d4086a77e9bc2eb3eab7dc707ff844a8949b78c80daa2ffaa2e643e022c1c2f",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "stdout_bytes": 1448,
+        "stderr_bytes": 0
+      }
+    ]
+  },
+  "normalized_result": {
+    "format": "xml",
+    "value": {
+      "NSLocationWhenInUseUsageDescription": "Canopy uses your location to show local weather in the notch.",
+      "CFBundleName": "Canopy v2",
+      "DTSDKName": "macosx27.0",
+      "DTXcode": "2700",
+      "NSHumanReadableCopyright": "© 2026 Ardalanj Jalili. All rights reserved.",
+      "DTSDKBuild": "26A5378i",
+      "CFBundleDevelopmentRegion": "en",
+      "CFBundleVersion": "2",
+      "BuildMachineOSBuild": "26B5086k",
+      "CFBundleIconName": "AppIcon",
+      "CFBundlePackageType": "APPL",
+      "CFBundleIconFile": "AppIcon",
+      "CFBundleSupportedPlatforms": [
+        "MacOSX"
+      ],
+      "DTPlatformName": "macosx",
+      "CFBundleShortVersionString": "1.1",
+      "NSAppleEventsUsageDescription": "Canopy uses Apple Music to display now-playing artwork.",
+      "CFBundleInfoDictionaryVersion": "6.0",
+      "CFBundleExecutable": "Canopy v2",
+      "DTCompiler": "com.apple.compilers.llvm.clang.1_0",
+      "NSLocationUsageDescription": "Canopy needs your location to show precise weather in the notch and locks screen",
+      "CFBundleURLTypes": [
+        {
+          "CFBundleURLName": "com.CanopyV2.Canopy-v2",
+          "CFBundleURLSchemes": [
+            "canopy"
+          ]
+        }
+      ],
+      "CFBundleIdentifier": "com.CanopyV2.canopy",
+      "LSApplicationCategoryType": "public.app-category.utilities",
+      "DTPlatformVersion": "27.0",
+      "DTXcodeBuild": "27A5218g",
+      "CFBundleDisplayName": "Canopy",
+      "LSMinimumSystemVersion": "26",
+      "NSAudioCaptureUsageDescription": "Canopy uses audio capture to display the waveform visualizer.",
+      "NSBluetoothAlwaysUsageDescription": "Canopy reads AirPods battery levels to show them in the notch when you connect.",
+      "DTPlatformBuild": "26A5378i",
+      "LSUIElement": true
+    },
+    "bundle": {
+      "identifier": "com.CanopyV2.canopy",
+      "executable": "Canopy v2",
+      "name": "Canopy v2",
+      "version": "2",
+      "short_version": "1.1"
+    },
+    "source_path": "/private/var/folders/kj/yg0y66756l5_pt0mg1rjj95m0000gq/T/rea-extracted-265aa808-2452-4bc2-801e-977c3dd54f2c/Canopy 2.app/Contents/Info.plist",
+    "provenance": [
+      {
+        "tool": "file",
+        "command": [
+          "/usr/bin/file",
+          "-b",
+          "$PLIST"
+        ],
+        "tool_version": null,
+        "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+        "executable_sha256": "71b961b48f02422bb2e7f653be4e1de9af1527a91e9e1a614c6bc7855cf45f7c",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "stdout_bytes": 48,
+        "stderr_bytes": 0
+      },
+      {
+        "tool": "plutil",
+        "command": [
+          "/usr/bin/plutil",
+          "-convert",
+          "json",
+          "-o",
+          "-",
+          "--",
+          "$PLIST"
+        ],
+        "tool_version": null,
+        "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+        "executable_sha256": "3d4086a77e9bc2eb3eab7dc707ff844a8949b78c80daa2ffaa2e643e022c1c2f",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "stdout_bytes": 1448,
+        "stderr_bytes": 0
+      }
+    ],
+    "limitations": []
+  },
+  "confidence": "observed",
+  "authority": "shipped-artifact",
+  "environment": null,
+  "limitations": [],
+  "locations": [
+    {
+      "kind": "artifact-path",
+      "path": "/private/var/folders/kj/yg0y66756l5_pt0mg1rjj95m0000gq/T/rea-extracted-265aa808-2452-4bc2-801e-977c3dd54f2c/Canopy 2.app/Contents/Info.plist"
+    }
+  ],
+  "evidence_links": []
+}
