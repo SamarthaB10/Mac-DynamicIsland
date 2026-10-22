@@ -32,7 +32,7 @@ Allow Automation access to Spotify when macOS asks. If access is denied, change 
 
 ### File Tray
 
-Drag files or folders from Finder onto the island. It opens File Tray during a drag. You can also use **Add Files**. Drag file icons out to other apps. Select an icon to reveal the file in Finder. **Remove** clears only the tray reference. It does not delete the file.
+Drag files or folders from Finder onto the island. It opens File Tray during a drag. You can also use **Add Files**. Drag a file icon out to another app to use it. After that app accepts the drop, the entry leaves the tray. A canceled drag keeps it in the tray. The original file stays in place. Select an icon to reveal the file in Finder. **Remove** clears only the tray reference. It does not delete the file.
 
 Tray references last until the app quits. Files stay in place. Cloud downloads added from Google Drive are stored in `~/Library/Application Support/Mac Island/Drive Downloads/`.
 
@@ -41,6 +41,8 @@ Tray references last until the app quits. Files stay in place. Cloud downloads a
 Select **Google Drive** in File Tray or in the menu bar. Connect Google accounts, browse folders, search for files, and download files into the tray. Use an upload button for a tray file, or drop local files onto the Drive window's upload area. Uploads go into the folder shown in that window. Files are not uploaded when you add them to File Tray.
 
 **First-time setup is required:** import a Google Cloud **Desktop app OAuth client JSON**, then select **Connect Account**. See the [Google Drive setup guide](docs/google-drive-setup.md). No Google client credentials are included in the public app. Google passwords are entered in your browser. Access and refresh tokens are stored in macOS Keychain.
+
+After an app update, macOS can ask to allow access to the saved Google credentials. Enter your Mac login password in the macOS Keychain dialog and select **Always Allow** if you trust this app. Do not enter that password in a website or chat.
 
 Google Docs, Sheets, and Slides download as DOCX, XLSX, and PPTX files. Folder uploads and recursive folder downloads are not supported. Files are uploaded as new copies. Existing Drive files are not overwritten.
 

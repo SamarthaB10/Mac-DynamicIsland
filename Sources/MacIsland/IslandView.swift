@@ -118,6 +118,7 @@ struct IslandView: View {
   }
 
   private func acceptDrop(_ providers: [NSItemProvider]) -> Bool {
+    guard !model.draggingFile else { return false }
     for provider in providers {
       provider.loadDataRepresentation(forTypeIdentifier: UTType.fileURL.identifier) { data, _ in
         guard let data, let url = URL(dataRepresentation: data, relativeTo: nil) else { return }

@@ -53,11 +53,27 @@ The Rust core is a static library in the app process. It has no network client, 
 - Several connected headphones or HDMI/DisplayPort devices. Those hardware cases were not available for a direct check. Unknown device battery data remains unknown.
 - Lid-close and external-monitor-only operation. The code hides without a built-in display; this was not checked by closing the user's lid.
 - Secure lock-screen display. The menu preview and lock-event adapter are implemented, but the secure login window was not exercised.
-- Google sign-in, token refresh, browsing, export, download, and upload with a real OAuth client. No client was supplied, so no Google account was connected and no cloud files were transferred.
+- Google token refresh, export, download, and upload. Initial sign-in and listing were checked in the follow-up below; these transfer paths still need checks.
 - Intel runtime and macOS 14 runtime. Both target architectures compile, but only Apple silicon on this Mac was available to run.
 - VoiceOver, reduced motion, and a full keyboard-navigation pass.
 
-## Scope and external services
+## Follow-up: version 0.2.1
+
+Work why: A file must leave File Tray after another app accepts its drop. The old SwiftUI drag provider did not receive a completion result, so the entry stayed in the tray.
+
+The file icon now starts a native AppKit drag and offers a copy of the file URL. It clears the tray reference only after macOS reports an accepted drop outside the island. Canceled drags and drops back on the island keep the entry. No original file is deleted or moved. The island stays open during the drag without changing the pin setting. No dependency was added.
+
+- `./scripts/build.sh` and `./scripts/package.sh`: passed.
+- `lipo -archs 'dist/Mac Island.app/Contents/MacOS/MacIsland'`: reported `x86_64 arm64`.
+- `codesign --verify --deep --strict '/Applications/Mac Island.app'`: passed after installation.
+- The installed app displayed a temporary text file in File Tray with the native drag source and an accessible file label.
+- Automated drag interaction returned `AXError.notImplemented` for the island panel. A Finder attempt was interrupted by user input. The user then confirmed that drag-out works. This is user confirmation, not a completed automated end-to-end check.
+- A direct filesystem check found `Drag Sample.txt` in the temporary Finder destination and confirmed that the original sample remained in its source folder.
+- The Google account connection was observed after an app restart. The app loaded the first 100 Drive items. After the update, macOS requested Keychain access again; the user confirmed that Google Drive works after approval. No credentials were committed to the repository.
+
+The app is installed in `/Applications/Mac Island.app`. It does not need the source folder. The DMG, ZIP, checksums, source, and updated README are published as version 0.2.1. No unit or integration tests were added or run.
+
+## Original release scope
 
 The app installation and GitHub publication were requested by the user. The source folder started empty, with no existing changes. All new files serve the app, its build, setup, or evidence.
 

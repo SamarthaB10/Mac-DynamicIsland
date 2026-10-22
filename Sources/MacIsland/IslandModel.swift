@@ -19,6 +19,7 @@ final class IslandModel: ObservableObject {
   @Published var files: [URL] = []
   @Published var fileError: String?
   @Published private(set) var isChoosingFiles = false
+  private(set) var draggingFile = false
   let media = MediaController()
   let weather = WeatherController()
   let audio = AudioController()
@@ -113,6 +114,15 @@ final class IslandModel: ObservableObject {
   func collapse(force: Bool = false) { send(force ? 4 : 9) }
   func hover(_ inside: Bool) { send(inside ? 1 : 2) }
   func togglePin() { send(3) }
+  func beginFileDrag() {
+    draggingFile = true
+    send(5)
+  }
+  func endFileDrag(_ url: URL, accepted: Bool) {
+    if accepted { files.removeAll { $0 == url } }
+    draggingFile = false
+    send(6)
+  }
   func setDropTarget(_ targeted: Bool) {
     if targeted { tab = .files }
     send(targeted ? 7 : 8)

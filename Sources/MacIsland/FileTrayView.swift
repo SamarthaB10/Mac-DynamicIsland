@@ -17,14 +17,11 @@ struct FileTrayView: View {
           HStack(alignment: .top, spacing: 12) {
             ForEach(model.files, id: \.self) { url in
               VStack(spacing: 4) {
-                Button {
-                  model.reveal(url)
-                } label: {
-                  Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
-                    .resizable().saturation(0).frame(width: 36, height: 36)
-                }.buttonStyle(.plain).help("Show in Finder")
-                  .accessibilityLabel("Show \(url.lastPathComponent) in Finder")
-                  .onDrag { NSItemProvider(contentsOf: url) ?? NSItemProvider() }
+                TrayFileIcon(
+                  url: url, reveal: { model.reveal(url) },
+                  began: { model.beginFileDrag() },
+                  ended: { accepted in model.endFileDrag(url, accepted: accepted) }
+                ).saturation(0).frame(width: 36, height: 36).help("Drag out, or click to show in Finder")
                 Text(url.lastPathComponent).font(.system(size: 10)).lineLimit(1).truncationMode(
                   .middle)
                 Button("Remove") { model.files.removeAll { $0 == url } }

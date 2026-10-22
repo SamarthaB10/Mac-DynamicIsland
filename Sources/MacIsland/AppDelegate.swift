@@ -7,13 +7,17 @@ final class IslandPanel: NSPanel, NSDraggingDestination {
   var dragState: ((Bool) -> Void)?
   var dropFiles: (([URL]) -> Void)?
   func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+    guard !(sender.draggingSource is TrayFileIconView) else { return [] }
     dragState?(true)
     return .copy
   }
-  func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation { .copy }
+  func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+    sender.draggingSource is TrayFileIconView ? [] : .copy
+  }
   func draggingExited(_ sender: NSDraggingInfo?) { dragState?(false) }
   func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool { true }
   func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+    guard !(sender.draggingSource is TrayFileIconView) else { return false }
     let files =
       sender.draggingPasteboard.readObjects(
         forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
