@@ -22,6 +22,7 @@ A [ZIP download](https://github.com/SamarthaB10/Mac-DynamicIsland/releases/lates
 - Select the pin only when you want it to stay open. The chevron or Escape closes and unpins it.
 - Swipe right over the island to hide it. Swipe left over the notch area to show it again. A horizontal two-finger trackpad gesture is supported. On the compact island, a mouse drag is also supported.
 - The menu bar's **Show Island** option can hide or show it. This choice is saved on your Mac.
+- Open Mac Island again from Finder or Launchpad to show and open a hidden island.
 - The island stays on the built-in MacBook display. It does not move to an external monitor. With the lid closed and no built-in display available, it hides.
 
 ### Now Playing
