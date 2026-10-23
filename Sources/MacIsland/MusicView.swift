@@ -1,3 +1,4 @@
+import QuartzCore
 import SwiftUI
 
 struct MusicView: View {
@@ -57,7 +58,12 @@ struct MusicView: View {
         Button(action: showDevices) { Image(systemName: "headphones").font(.system(size: 18)) }
           .buttonStyle(.plain).accessibilityLabel("Show audio devices").help("Audio devices")
       }.frame(height: 28)
-      if let error = media.error {
+      if !media.hasTrack {
+        Button { media.openPlayer() } label: {
+          SpotifyMark().frame(width: 14, height: 14).frame(width: 28, height: 20)
+        }.buttonStyle(.plain).accessibilityLabel("Open Spotify").help("Open Spotify")
+      }
+      if let error = media.error, error != "Open Spotify first." {
         Button {
           media.command()
         } label: {
@@ -82,6 +88,27 @@ struct MusicView: View {
       Image(systemName: symbol).font(.system(size: prominent ? 23 : 20, weight: .semibold))
         .frame(width: 32, height: 28)
     }.buttonStyle(.plain).accessibilityLabel(label).help(label).disabled(media.busy)
+  }
+}
+
+private struct SpotifyMark: View {
+  var body: some View {
+    GeometryReader { geometry in
+      let size = geometry.size.width
+      ZStack {
+        Circle().fill(.white)
+        Path { path in
+          for row in 0..<3 {
+            let y = size * (0.34 + CGFloat(row) * 0.19)
+            let inset = size * (0.22 + CGFloat(row) * 0.025)
+            path.move(to: CGPoint(x: inset, y: y))
+            path.addQuadCurve(
+              to: CGPoint(x: size - inset, y: y + size * 0.055),
+              control: CGPoint(x: size * 0.52, y: y - size * 0.12))
+          }
+        }.stroke(.black, style: StrokeStyle(lineWidth: size * 0.075, lineCap: .round))
+      }
+    }
   }
 }
 
@@ -119,26 +146,55 @@ struct PlayingIndicator: View {
   }
 }
 
-private struct AnimatedMusicBars: View {
-  @State private var moving = false
-  private let heights: [CGFloat] = [0.35, 0.8, 0.55, 1, 0.45]
+private struct AnimatedMusicBars: NSViewRepresentable {
+  func makeNSView(context: Context) -> MusicBarsView { MusicBarsView() }
+  func updateNSView(_ view: MusicBarsView, context: Context) {}
+}
 
-  var body: some View {
-    GeometryReader { geometry in
-      HStack(spacing: 2) {
-        ForEach(0..<5) { index in
-          Capsule().fill(.white)
-            .frame(
-              width: 2,
-              height: max(
-                2, geometry.size.height * (moving ? heights[index] : 1.1 - heights[index]))
-            )
-            .animation(
-              .easeInOut(duration: 0.42 + Double(index) * 0.06).repeatForever(autoreverses: true),
-              value: moving)
-        }
-      }.frame(width: geometry.size.width, height: geometry.size.height)
-    }.onAppear { moving = true }
+private final class MusicBarsView: NSView {
+  private var bars: [CALayer] = []
+
+  override init(frame frameRect: NSRect) {
+    super.init(frame: frameRect)
+    wantsLayer = true
+    for _ in 0..<5 {
+      let bar = CALayer()
+      bar.backgroundColor = NSColor.white.cgColor
+      bar.cornerRadius = 1
+      layer?.addSublayer(bar)
+      bars.append(bar)
+    }
+  }
+
+  required init?(coder: NSCoder) { nil }
+
+  override func layout() {
+    super.layout()
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    for (index, bar) in bars.enumerated() {
+      bar.bounds = CGRect(x: 0, y: 0, width: 2, height: bounds.height)
+      bar.position = CGPoint(x: bounds.midX - 8 + CGFloat(index) * 4, y: bounds.midY)
+    }
+    CATransaction.commit()
+  }
+
+  override func viewDidMoveToWindow() {
+    super.viewDidMoveToWindow()
+    for (index, bar) in bars.enumerated() {
+      bar.removeAllAnimations()
+      guard window != nil else { continue }
+      // Core Animation runs these bars without invalidating the SwiftUI view each frame.
+      let animation = CABasicAnimation(keyPath: "transform.scale.y")
+      animation.fromValue = 0.2
+      animation.toValue = 0.95
+      animation.duration = 0.3 + Double(index) * 0.07
+      animation.autoreverses = true
+      animation.repeatCount = .infinity
+      animation.timeOffset = Double(index) * 0.11
+      animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+      bar.add(animation, forKey: "playback")
+    }
   }
 }
 

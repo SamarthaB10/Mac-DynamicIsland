@@ -183,6 +183,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     if let localMouseMonitor { NSEvent.removeMonitor(localMouseMonitor) }
   }
 
+  func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+    openIsland()
+    return false
+  }
+
   private var screen: NSScreen? {
     NSScreen.screens.first { id(for: $0).map { CGDisplayIsBuiltin($0) != 0 } ?? false }
   }

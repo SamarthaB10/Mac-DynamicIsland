@@ -22,6 +22,7 @@ A [ZIP download](https://github.com/SamarthaB10/Mac-DynamicIsland/releases/lates
 - Select the pin only when you want it to stay open. The chevron or Escape closes and unpins it.
 - Swipe right over the island to hide it. Swipe left over the notch area to show it again. A horizontal two-finger trackpad gesture is supported. On the compact island, a mouse drag is also supported.
 - The menu bar's **Show Island** option can hide or show it. This choice is saved on your Mac.
+- Open Mac Island again from Finder or Launchpad to show and open a hidden island.
 - The island stays on the built-in MacBook display. It does not move to an external monitor. With the lid closed and no built-in display available, it hides.
 
 ### Now Playing
@@ -72,7 +73,7 @@ The menu includes a lock-screen player switch and preview. Secure lock-screen di
 
 The SwiftUI interface uses AppKit for windows, CoreAudio for device changes, and Core Location for location. A small **Rust static library** controls open, close, pin, hide, restore, and dismissal deadlines. It runs inside the app; there is no backend server or helper process. Native macOS adapters and Google network access remain in Swift.
 
-There is no repeating system polling loop. Playback indicators run only while music plays. The progress display updates while playing; it does not poll Spotify. Only the current album cover is retained, at a maximum of 160 pixels per side. Google Drive upload and download bodies use file transfers instead of loading whole files into memory.
+There is no repeating system polling loop. Core Animation runs the playback bars while music plays, without a SwiftUI redraw loop. The visible progress display updates once per second while playing; it does not poll Spotify. Only the current album cover is retained, at a maximum of 160 pixels per side. Google Drive upload and download bodies use file transfers instead of loading whole files into memory.
 
 See [verification](docs/verification.md) for measured resource use and checks that remain. These measurements do not guarantee a fixed memory or CPU limit on every Mac.
 
