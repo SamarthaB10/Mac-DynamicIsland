@@ -370,6 +370,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     if driveWindow == nil {
       let drive = driveController ?? GoogleDriveController()
       drive.receivedFile = { [weak self] url in self?.model.addFiles([url]) }
+      drive.retainUploadFiles = { [weak self] urls in self?.model.retainUploadFiles(urls) ?? false }
+      drive.releaseUploadFiles = { [weak self] urls in self?.model.releaseUploadFiles(urls) }
       driveController = drive
       let window = NSWindow(
         contentRect: NSRect(x: 0, y: 0, width: 700, height: 520),
