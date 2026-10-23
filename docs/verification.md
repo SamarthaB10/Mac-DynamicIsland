@@ -1,5 +1,13 @@
 # Verification
 
+## Restore on open: 2026-10-23
+
+The app process was running while the saved `islandHidden` preference was true. Opening the existing app had no restore handler. The app now handles a reopen request by showing and opening the island. This keeps the saved hide choice for normal startup and provides a direct way to restore it from Finder or Launchpad.
+
+`./scripts/build.sh`, `cargo fmt --manifest-path core/Cargo.toml -- --check`, `zsh -n scripts/build.sh`, and `git diff --check` passed. The fresh bundle passed signature verification before replacement. The installed bundle passed `codesign --verify --deep --strict` and its executable matched the fresh build with `cmp`. Opening the app changed `islandHidden` from 1 to 0. Native UI inspection showed Hub controls, and a screenshot showed the compact island. The on-screen window list reported one Mac Island window at x=493, y=-24, width=528, height=440. Its 24-point content inset places the widget at the screen top. The running executable was `/Applications/Mac Island.app/Contents/MacOS/MacIsland`, SHA-256 `c93f1d1c983deee9c631bb89852513977977c2361dce4535a46ac6a45adb491b`.
+
+The build includes the reviewed native playback changes from PR #2, which was merged into the Hub branch. No account, saved text, or authentication setting was changed. No tests were added. Build caches were removed after installation. No app backup was kept, as requested. PR monitoring remains off.
+
 ## Hub update: 2026-10-23
 
 Work why: Keep files and saved text in one native Hub, with safe file actions and a standalone installed app.
