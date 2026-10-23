@@ -57,7 +57,11 @@ struct MusicView: View {
         Button(action: showDevices) { Image(systemName: "headphones").font(.system(size: 18)) }
           .buttonStyle(.plain).accessibilityLabel("Show audio devices").help("Audio devices")
       }.frame(height: 28)
-      if let error = media.error {
+      if !media.hasTrack {
+        Button { media.openPlayer() } label: {
+          SpotifyMark().frame(width: 14, height: 14).frame(width: 28, height: 20)
+        }.buttonStyle(.plain).accessibilityLabel("Open Spotify").help("Open Spotify")
+      } else if let error = media.error {
         Button {
           media.command()
         } label: {
@@ -82,6 +86,27 @@ struct MusicView: View {
       Image(systemName: symbol).font(.system(size: prominent ? 23 : 20, weight: .semibold))
         .frame(width: 32, height: 28)
     }.buttonStyle(.plain).accessibilityLabel(label).help(label).disabled(media.busy)
+  }
+}
+
+private struct SpotifyMark: View {
+  var body: some View {
+    GeometryReader { geometry in
+      let size = geometry.size.width
+      ZStack {
+        Circle().fill(.white)
+        Path { path in
+          for row in 0..<3 {
+            let y = size * (0.34 + CGFloat(row) * 0.19)
+            let inset = size * (0.22 + CGFloat(row) * 0.025)
+            path.move(to: CGPoint(x: inset, y: y))
+            path.addQuadCurve(
+              to: CGPoint(x: size - inset, y: y + size * 0.055),
+              control: CGPoint(x: size * 0.52, y: y - size * 0.12))
+          }
+        }.stroke(.black, style: StrokeStyle(lineWidth: size * 0.075, lineCap: .round))
+      }
+    }
   }
 }
 
