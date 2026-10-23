@@ -46,7 +46,7 @@ Each action asks for an output folder. Cancel makes no files. Result files have 
 
 In Saved Text, paste plain text or a link into the input area to save it automatically. Command-V also works anywhere in Saved Text; the clipboard button and context menu provide Paste. Line breaks are kept. Empty entries are not saved. Repeated saves make separate items. The copy icon keeps the saved item; the × icon removes it from Saved Text. **Open** is available only when the whole item is a complete HTTP or HTTPS link. It opens the default browser when selected.
 
-You can give a new saved item an optional title, or use its pencil button to edit a title later. Drag its handle onto another item to move it before that item. Drop below the list to move it to the end. The handle also has Move to top and Move to end commands. Titles and order stay saved across restarts.
+You can give a new saved item an optional title, or use its pencil button to edit a title later. Use the up and down buttons at the top of an item to change its position. Titles and order stay saved across restarts.
 
 Saved Text stays on this Mac across restarts until you remove it. It is stored in `~/Library/Application Support/Mac Island/Saved Text.json`. When you type text, a **Save** button appears. Select it to save. Unsaved typed text is not stored when the app quits. The app does not monitor the clipboard or sync saved text. Cloud downloads added from Google Drive are stored in `~/Library/Application Support/Mac Island/Drive Downloads/`.
 
