@@ -1,3 +1,4 @@
+import QuartzCore
 import SwiftUI
 
 struct MusicView: View {
@@ -145,17 +146,54 @@ struct PlayingIndicator: View {
   }
 }
 
-private struct AnimatedMusicBars: View {
-  var body: some View {
-    TimelineView(.animation(minimumInterval: 0.1)) { timeline in
-      Canvas { context, size in
-        for index in 0..<5 {
-          let phase = timeline.date.timeIntervalSinceReferenceDate * (4 + Double(index) * 0.2)
-          let height = max(2, size.height * (0.55 + 0.4 * sin(phase + Double(index))))
-          let rect = CGRect(x: CGFloat(index) * 4, y: (size.height - height) / 2, width: 2, height: height)
-          context.fill(Path(roundedRect: rect, cornerRadius: 1), with: .color(.white))
-        }
-      }
+private struct AnimatedMusicBars: NSViewRepresentable {
+  func makeNSView(context: Context) -> MusicBarsView { MusicBarsView() }
+  func updateNSView(_ view: MusicBarsView, context: Context) {}
+}
+
+private final class MusicBarsView: NSView {
+  private var bars: [CALayer] = []
+
+  override init(frame frameRect: NSRect) {
+    super.init(frame: frameRect)
+    wantsLayer = true
+    for _ in 0..<5 {
+      let bar = CALayer()
+      bar.backgroundColor = NSColor.white.cgColor
+      bar.cornerRadius = 1
+      layer?.addSublayer(bar)
+      bars.append(bar)
+    }
+  }
+
+  required init?(coder: NSCoder) { nil }
+
+  override func layout() {
+    super.layout()
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    for (index, bar) in bars.enumerated() {
+      bar.bounds = CGRect(x: 0, y: 0, width: 2, height: bounds.height)
+      bar.position = CGPoint(x: bounds.midX - 8 + CGFloat(index) * 4, y: bounds.midY)
+    }
+    CATransaction.commit()
+  }
+
+  override func viewDidMoveToWindow() {
+    super.viewDidMoveToWindow()
+    for (index, bar) in bars.enumerated() {
+      bar.removeAllAnimations()
+      guard window != nil else { continue }
+      // Core Animation runs these bars without invalidating the SwiftUI view each frame.
+      let animation = CABasicAnimation(keyPath: "transform.scale.y")
+      animation.fromValue = 0.2
+      animation.toValue = 0.95
+      animation.duration = 0.3 + Double(index) * 0.07
+      animation.autoreverses = true
+      animation.repeatCount = .infinity
+      animation.timeOffset = Double(index) * 0.11
+      animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+      bar.add(animation, forKey: "playback")
     }
   }
 }
