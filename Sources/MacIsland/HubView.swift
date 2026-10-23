@@ -1,13 +1,4 @@
 import SwiftUI
-import CoreTransferable
-import UniformTypeIdentifiers
-
-private struct SavedItemDrag: Codable, Transferable {
-  let id: UUID
-  static var transferRepresentation: some TransferRepresentation {
-    CodableRepresentation(contentType: UTType(exportedAs: "local.macisland.saved-item"))
-  }
-}
 
 enum HubSection: String, CaseIterable {
   case files = "Files"
@@ -80,20 +71,8 @@ private struct SavedTextView: View {
           LazyVStack(alignment: .leading, spacing: 10) {
             ForEach(model.savedItems) { item in
               SavedTextRow(model: model, item: item)
-                .dropDestination(for: SavedItemDrag.self) { values, _ in
-                  guard let id = values.first?.id else { return false }
-                  model.moveText(id, before: item.id)
-                  return true
-                }
               Divider().overlay(.white.opacity(0.15))
             }
-            Color.clear.frame(height: 16).contentShape(Rectangle())
-              .help("Drop here to move saved text to the end")
-              .dropDestination(for: SavedItemDrag.self) { values, _ in
-                guard let id = values.first?.id else { return false }
-                model.moveText(id, before: nil)
-                return true
-              }
           }
         }
       }
@@ -111,14 +90,18 @@ private struct SavedTextRow: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      Image(systemName: "line.3.horizontal").frame(maxWidth: .infinity).frame(height: 20)
-        .foregroundStyle(.white.opacity(0.6)).contentShape(Rectangle())
-        .draggable(SavedItemDrag(id: item.id))
-        .accessibilityLabel("Reorder saved text").help("Drag to reorder")
-        .contextMenu {
-          Button("Move to top") { model.moveText(item.id, before: model.savedItems.first?.id) }
-          Button("Move to end") { model.moveText(item.id, before: nil) }
-        }
+      HStack(spacing: 12) {
+        Spacer()
+        Button { model.moveText(item.id, offset: -1) } label: {
+          Image(systemName: "chevron.up").frame(width: 24, height: 24)
+        }.disabled(model.savedItems.first?.id == item.id)
+          .accessibilityLabel("Move saved text up").help("Move up")
+        Button { model.moveText(item.id, offset: 1) } label: {
+          Image(systemName: "chevron.down").frame(width: 24, height: 24)
+        }.disabled(model.savedItems.last?.id == item.id)
+          .accessibilityLabel("Move saved text down").help("Move down")
+        Spacer()
+      }.buttonStyle(.plain)
       HStack {
         if editingTitle {
           TextField("Title", text: $title).textFieldStyle(.plain).onSubmit(saveTitle)

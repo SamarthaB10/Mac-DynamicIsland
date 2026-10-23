@@ -265,11 +265,11 @@ final class IslandModel: ObservableObject {
     _ = persistText(items)
   }
 
-  func moveText(_ id: UUID, before target: UUID?) {
-    guard id != target, let item = savedItems.first(where: { $0.id == id }) else { return }
-    var items = savedItems.filter { $0.id != id }
-    let index = target.flatMap { target in items.firstIndex { $0.id == target } } ?? items.count
-    items.insert(item, at: index)
+  func moveText(_ id: UUID, offset: Int) {
+    guard let index = savedItems.firstIndex(where: { $0.id == id }),
+      savedItems.indices.contains(index + offset) else { return }
+    var items = savedItems
+    items.swapAt(index, index + offset)
     _ = persistText(items)
   }
 
