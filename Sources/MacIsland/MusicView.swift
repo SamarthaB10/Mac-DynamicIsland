@@ -146,25 +146,17 @@ struct PlayingIndicator: View {
 }
 
 private struct AnimatedMusicBars: View {
-  @State private var moving = false
-  private let heights: [CGFloat] = [0.35, 0.8, 0.55, 1, 0.45]
-
   var body: some View {
-    GeometryReader { geometry in
-      HStack(spacing: 2) {
-        ForEach(0..<5) { index in
-          Capsule().fill(.white)
-            .frame(
-              width: 2,
-              height: max(
-                2, geometry.size.height * (moving ? heights[index] : 1.1 - heights[index]))
-            )
-            .animation(
-              .easeInOut(duration: 0.42 + Double(index) * 0.06).repeatForever(autoreverses: true),
-              value: moving)
+    TimelineView(.animation(minimumInterval: 0.1)) { timeline in
+      Canvas { context, size in
+        for index in 0..<5 {
+          let phase = timeline.date.timeIntervalSinceReferenceDate * (4 + Double(index) * 0.2)
+          let height = max(2, size.height * (0.55 + 0.4 * sin(phase + Double(index))))
+          let rect = CGRect(x: CGFloat(index) * 4, y: (size.height - height) / 2, width: 2, height: height)
+          context.fill(Path(roundedRect: rect, cornerRadius: 1), with: .color(.white))
         }
-      }.frame(width: geometry.size.width, height: geometry.size.height)
-    }.onAppear { moving = true }
+      }
+    }
   }
 }
 
