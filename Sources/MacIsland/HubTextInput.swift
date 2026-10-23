@@ -20,6 +20,9 @@ struct HubTextInput: NSViewRepresentable {
     editor.drawsBackground = false
     editor.textColor = .white
     editor.insertionPointColor = .white
+    editor.selectedTextAttributes = [
+      .backgroundColor: NSColor.white.withAlphaComponent(0.3), .foregroundColor: NSColor.white,
+    ]
     editor.font = .systemFont(ofSize: 12)
     editor.textContainerInset = NSSize(width: 0, height: 6)
     editor.isVerticallyResizable = true

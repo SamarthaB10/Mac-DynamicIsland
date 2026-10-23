@@ -46,6 +46,10 @@ private struct SavedTextView: View {
       HStack(alignment: .bottom, spacing: 10) {
         HubTextInput(text: $model.textInput, height: $inputHeight, save: { model.saveText() })
           .frame(height: inputHeight)
+        if !model.textInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+          Button("Save") { model.saveText() }.buttonStyle(.plain)
+            .font(.system(size: 11, weight: .medium)).padding(6)
+        }
       }
       if let error = model.textError {
         Text(error).font(.system(size: 11)).textSelection(.enabled)
