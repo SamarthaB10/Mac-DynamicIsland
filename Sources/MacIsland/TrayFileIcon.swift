@@ -6,6 +6,8 @@ struct TrayFileIcon: NSViewRepresentable {
   let reveal: () -> Void
   let began: () -> Void
   let ended: (Bool) -> Void
+  let writer: () -> NSPasteboardWriting
+  let enabled: Bool
 
   func makeNSView(context: Context) -> TrayFileIconView { TrayFileIconView() }
 
@@ -16,10 +18,12 @@ struct TrayFileIcon: NSViewRepresentable {
     view.reveal = reveal
     view.began = began
     view.ended = ended
+    view.writer = writer
+    view.isEnabled = enabled
     view.setAccessibilityElement(true)
     view.setAccessibilityRole(.button)
     view.setAccessibilityLabel("Show \(url.lastPathComponent) in Finder")
-    view.setAccessibilityHelp("Drag to another app to take this file out of the tray.")
+    view.setAccessibilityHelp("Drag to another app to take this file out of the Hub.")
   }
 }
 
@@ -28,6 +32,7 @@ final class TrayFileIconView: NSImageView, NSDraggingSource {
   var reveal: (() -> Void)?
   var began: (() -> Void)?
   var ended: ((Bool) -> Void)?
+  var writer: (() -> NSPasteboardWriting)?
   private var mouseOrigin: NSPoint?
   private var dragging = false
   private var sourceFrame = NSRect.zero
@@ -35,24 +40,26 @@ final class TrayFileIconView: NSImageView, NSDraggingSource {
   override var acceptsFirstResponder: Bool { true }
 
   override func mouseDown(with event: NSEvent) {
+    guard isEnabled else { return }
     mouseOrigin = event.locationInWindow
     dragging = false
     window?.makeFirstResponder(self)
   }
 
   override func mouseDragged(with event: NSEvent) {
-    guard !dragging, let mouseOrigin, let url,
+    guard isEnabled, !dragging, let mouseOrigin, let url,
       hypot(event.locationInWindow.x - mouseOrigin.x, event.locationInWindow.y - mouseOrigin.y) >= 4
     else { return }
     dragging = true
     sourceFrame = window?.frame ?? .zero
     began?()
-    let item = NSDraggingItem(pasteboardWriter: url as NSURL)
+    let item = NSDraggingItem(pasteboardWriter: writer?() ?? url as NSURL)
     item.setDraggingFrame(bounds, contents: image)
     beginDraggingSession(with: [item], event: event, source: self)
   }
 
   override func mouseUp(with event: NSEvent) {
+    guard isEnabled else { return }
     if !dragging && bounds.contains(convert(event.locationInWindow, from: nil)) { reveal?() }
     mouseOrigin = nil
   }
@@ -71,6 +78,7 @@ final class TrayFileIconView: NSImageView, NSDraggingSource {
   }
 
   override func accessibilityPerformPress() -> Bool {
+    guard isEnabled else { return false }
     reveal?()
     return true
   }

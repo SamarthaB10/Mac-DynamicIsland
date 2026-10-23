@@ -1,6 +1,6 @@
 # Mac Island
 
-A small Dynamic Island for the MacBook notch. It has Spotify controls, a file tray, connected devices, and local weather. The interface uses the macOS system font, black and white controls, and color album covers.
+A small Dynamic Island for the MacBook notch. It has Spotify controls, a Hub for files and saved text, connected devices, and local weather. The interface uses the macOS system font, black and white controls, and color album covers.
 
 ## Download and install
 
@@ -30,15 +30,29 @@ Play music in Spotify. The cover and playing indicator appear beside the notch. 
 
 Allow Automation access to Spotify when macOS asks. If access is denied, change it in **System Settings > Privacy & Security > Automation**. Apple Music is not supported.
 
-### File Tray
+### Hub
 
-Drag files or folders from Finder onto the island. It opens File Tray during a drag. You can also use **Add Files**. Drag a file icon out to another app to use it. After that app accepts the drop, the entry leaves the tray. A canceled drag keeps it in the tray. The original file stays in place. Select an icon to reveal the file in Finder. **Remove** clears only the tray reference. It does not delete the file.
+The Hub has **Files** and **Saved Text** views.
 
-Tray references last until the app quits. Files stay in place. Cloud downloads added from Google Drive are stored in `~/Library/Application Support/Mac Island/Drive Downloads/`.
+In Files, drag files or folders from Finder onto the island, or select the middle tray icon. Drag a file icon to another app to use it. An accepted drop removes the Hub reference. A canceled drag keeps it. Select an icon to show the file in Finder. **Remove** clears only the reference. Source files stay in place. File references last until the app quits. Browser drags can supply local files, promised files, image data, or HTTP/HTTPS download URLs. Online copies use a private session folder under the macOS temporary directory, named `Mac Island Online Drops`. They are removed after an accepted outward drag has delivered a copy, or when Mac Island quits normally. Canceled drags keep the temporary file. **Save to Downloads** in Options makes a permanent, uniquely named copy in Downloads. Local source files are never put in this temporary area or deleted by the Hub. Some protected website downloads require a browser sign-in and cannot be downloaded by the app. Partial download results are kept. The color Google G button opens the existing Drive window.
+
+Select the checkboxes for the files you want to process. Open **Options** to show the horizontal action buttons. **Create ZIP** makes one archive from selected files and folders. **Resize Images** and **Convert Images** accept PNG, JPEG, and HEIC inputs and make PNG or JPEG outputs. Resize offers maximum long edges of 512, 1024, and 2048 pixels, or a positive custom value. It keeps proportions and does not enlarge smaller images. PNG keeps transparency. JPEG uses a white background. Image orientation is kept.
+
+**Compress Images** accepts a target size in MB and PNG or JPEG output. It reduces quality or dimensions to meet the target, keeps proportions, and keeps a result only when it is smaller than the source and fits the target. Very small targets may not be possible. Large inputs are decoded at a maximum long edge of 8192 pixels for this action. JPEG uses a white background.
+
+**Images to PDF** makes one PDF for each selected PNG, JPEG, or HEIC image. **Compress PDFs** uses balanced image compression and keeps text selectable. It keeps a result only when it is smaller and reports the before and after sizes. Some PDFs cannot be made smaller. ZIP compression also depends on the source content; already compressed files may not shrink.
+
+Each action asks for an output folder. Cancel makes no files. Result files have new names when a name is already used. Completed results appear in Files. If part of an action fails, completed results are kept and the app lists the failures. Sources stay unchanged. Deselect unsupported items before an image action. Choose an output folder outside selected folders for ZIP creation.
+
+In Saved Text, paste plain text or a link into the input area to save it automatically. Command-V also works anywhere in Saved Text; the clipboard button and context menu provide Paste. Line breaks are kept. Empty entries are not saved. Repeated saves make separate items. The copy icon keeps the saved item; the × icon removes it from Saved Text. **Open** is available only when the whole item is a complete HTTP or HTTPS link. It opens the default browser when selected.
+
+You can give a new saved item an optional title, or use its pencil button to edit a title later. Use the up and down buttons at the top of an item to change its position. Titles and order stay saved across restarts.
+
+Saved Text stays on this Mac across restarts until you remove it. It is stored in `~/Library/Application Support/Mac Island/Saved Text.json`. When you type text, a **Save** button appears. Select it to save. Unsaved typed text is not stored when the app quits. The app does not monitor the clipboard or sync saved text. Cloud downloads added from Google Drive are stored in `~/Library/Application Support/Mac Island/Drive Downloads/`.
 
 ### Google Drive
 
-Select **Google Drive** in File Tray or in the menu bar. Connect Google accounts, browse folders, search for files, and download files into the tray. Use an upload button for a tray file, or drop local files onto the Drive window's upload area. Uploads go into the folder shown in that window. Files are not uploaded when you add them to File Tray.
+Select **Google Drive** in the Hub or in the menu bar. Connect Google accounts, browse folders, search for files, and download files into the Hub. Use an upload button for a Hub file, or drop local files onto the Drive window's upload area. Uploads go into the folder shown in that window. Files are not uploaded when you add them to the Hub.
 
 **First-time setup is required:** import a Google Cloud **Desktop app OAuth client JSON**, then select **Connect Account**. See the [Google Drive setup guide](docs/google-drive-setup.md). No Google client credentials are included in the public app. Google passwords are entered in your browser. Access and refresh tokens are stored in macOS Keychain.
 

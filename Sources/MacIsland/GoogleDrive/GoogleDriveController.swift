@@ -41,6 +41,8 @@ final class GoogleDriveController: ObservableObject {
   @Published private(set) var error: String?
   @Published private(set) var nextPage: String?
   var receivedFile: ((URL) -> Void)?
+  var retainUploadFiles: (([URL]) -> Bool)?
+  var releaseUploadFiles: (([URL]) -> Void)?
   private var configuration: GoogleClientConfiguration?
   private let oauth = GoogleOAuth()
   private let session: URLSession = {
@@ -218,14 +220,19 @@ final class GoogleDriveController: ObservableObject {
       let destination = folder.appendingPathComponent(name)
       try FileManager.default.moveItem(at: temporary, to: destination)
       self.receivedFile?(destination)
-      self.status = "Added \(name) to File Tray."
+      self.status = "Added \(name) to Hub."
     }
   }
 
   func upload(_ urls: [URL]) {
     guard !busy, selectedAccount != nil, !urls.isEmpty else { return }
+    guard retainUploadFiles?(urls) ?? true else {
+      error = "Wait for the file drag to finish, then upload again."
+      return
+    }
     let folder = folders.last!.id
     run("Uploading to Google Drive…") {
+      defer { self.releaseUploadFiles?(urls) }
       let token = try await self.token()
       for url in urls {
         let values = try url.resourceValues(forKeys: [

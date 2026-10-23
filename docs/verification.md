@@ -1,5 +1,34 @@
 # Verification
 
+## Hub update: 2026-10-23
+
+Work why: Keep files and saved text in one native Hub, with safe file actions and a standalone installed app.
+
+The sections below this update describe the earlier release. They do not establish that the new Hub file actions passed manual checks.
+
+The host release build passed with `./scripts/build.sh`. These checks also passed:
+
+- `cargo fmt --manifest-path core/Cargo.toml -- --check`
+- `cargo clippy --manifest-path core/Cargo.toml -- -D warnings`
+- `zsh -n scripts/build.sh scripts/package.sh`
+- `bash -n scripts/setup-google-drive.sh`
+- `plutil -lint scripts/Info.plist scripts/MacIsland.entitlements`
+- `git diff --check`
+- `codesign --verify --deep --strict` for the fresh and installed bundles
+- `cmp 'dist/Mac Island.app/Contents/MacOS/MacIsland' '/Applications/Mac Island.app/Contents/MacOS/MacIsland'`
+
+The app was built and its signature was checked before the old process was stopped. The old app was backed up at `~/Library/Application Support/Mac Island Backups/20261023-003418/Mac Island.app`. The update was installed and launched from `/Applications/Mac Island.app`. `ps` confirmed that executable path. `otool -L` showed only Apple system frameworks and Swift libraries. The source folder and build tools are not needed to run the installed app. No dependency was added to the application.
+
+Observed through the running app during this task: Hub navigation, plain multiline paste, automatic save after explicit paste, Copy retaining an item, Remove, whitespace rejection, repeated items, complete-link Open, and saved-text persistence after Quit and relaunch. Removed sample entries stayed removed. The native file chooser opened. The Drive account and its first 100 items were observed after sign-in; the user also confirmed authentication. Drive authentication code and Keychain entries were not changed. Ardia was set to open external links in a new tab in its last-used window.
+
+Later updates added titles, up/down order buttons, horizontal file-action buttons, native text-input focus fixes, and temporary online-file delivery. Those final paths have not completed a full manual pass. Native UI automation first returned `AXError.notImplemented` for panel drags, then timeouts. Its final failure was `Sky Computer Use native pipe startup failed`, including after a reset.
+
+Still unverified in the final UI: typed Save and title editing, up/down ordering and its restart persistence, browser and Finder drag delivery, ZIP entries, image output formats and dimensions, PDF output and text retention, compression size, output cancellation, naming conflicts, and partial failures. Temporary source files and existing-output sentinels matched all 14 recorded hashes before cleanup. This confirms they stayed unchanged during the checks; it does not establish that the file actions ran.
+
+The physical-top placement was checked through the window list: canvas y=-24 with 24-point top padding, on the built-in 1512×982-point display with a 32-point notch. A native lock-screen player already exists. Secure lock-screen display remains unverified. The user chose music controls only; no lyrics service was added.
+
+Local before and after UI images were captured during the task. The user later requested removal of temporary check files and did not require images on GitHub. No unit or integration tests were added or run. Intel and older-macOS runtime checks were not run for this update. There was no database use or public release deployment. GitHub publication and local application installation were authorized.
+
 Work why: Deliver a standalone Mac app with a small notch interface, and record what was directly checked.
 
 Checked on 2026-10-22 with an Apple silicon MacBook Pro, macOS 26.6.2, Apple Swift 6.3.3, and Rust 1.99.0. No unit or integration tests were added or run, as requested.
