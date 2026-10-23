@@ -11,6 +11,12 @@ final class HubDropReceiver {
   }()
   private let sessionFolder = FileManager.default.temporaryDirectory
     .appendingPathComponent("Mac Island Online Drops/\(UUID().uuidString)")
+  private let session: URLSession = {
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.urlCache = nil
+    configuration.httpCookieStorage = nil
+    return URLSession(configuration: configuration)
+  }()
 
   static let types = [NSPasteboard.PasteboardType.fileURL, .URL, .png, .tiff]
     + NSFilePromiseReceiver.readableDraggedTypes.map { NSPasteboard.PasteboardType($0) }
@@ -58,7 +64,7 @@ final class HubDropReceiver {
         var failures: [String] = []
         for url in urls {
           do {
-            let (temporary, response) = try await URLSession.shared.download(from: url)
+            let (temporary, response) = try await session.download(from: url)
             defer { try? FileManager.default.removeItem(at: temporary) }
             guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
               throw FileActions.failure("The website did not return a downloadable file.")
