@@ -24,6 +24,7 @@ final class IslandModel: ObservableObject {
   @Published var textTitle = ""
   @Published private(set) var onlineFiles: Set<URL> = []
   @Published private(set) var pendingOnlineDrags: Set<URL> = []
+  @Published private(set) var uploadingFiles: Set<URL> = []
   private var outgoingPromises: [URL: HubFilePromise] = [:]
   private var acceptedOnlineDrags: Set<URL> = []
   private var deliveredOnlineDrags: Set<URL> = []
@@ -215,8 +216,18 @@ final class IslandModel: ObservableObject {
     NSWorkspace.shared.activateFileViewerSelecting([url])
   }
 
+  func retainUploadFiles(_ urls: [URL]) -> Bool {
+    guard pendingOnlineDrags.isDisjoint(with: urls) else { return false }
+    uploadingFiles.formUnion(urls)
+    return true
+  }
+
+  func releaseUploadFiles(_ urls: [URL]) {
+    uploadingFiles.subtract(urls)
+  }
+
   func removeFile(_ url: URL) {
-    guard !processingFiles, !pendingOnlineDrags.contains(url) else {
+    guard !processingFiles, !pendingOnlineDrags.contains(url), !uploadingFiles.contains(url) else {
       fileError = "Wait for the current file operation to finish."
       return
     }
@@ -244,7 +255,7 @@ final class IslandModel: ObservableObject {
   @discardableResult
   func pasteText() -> Bool {
     guard expanded, tab == .files, hubView == .savedText, !isChoosingFiles else { return false }
-    guard let text = NSPasteboard.general.string(forType: .string) else {
+    guard let text = NSPasteboard.general.string(forType: .string), !text.isEmpty else {
       textError = "The clipboard does not contain text."
       return true
     }

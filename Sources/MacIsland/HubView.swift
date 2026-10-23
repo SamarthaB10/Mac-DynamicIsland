@@ -121,11 +121,9 @@ private struct SavedTextRow: View {
           Image(systemName: "doc.on.doc").frame(width: 24, height: 24)
         }.accessibilityLabel("Copy saved text").help("Copy")
         if item.webURL != nil { Button("Open") { model.openText(item) } }
-        if item.text.count > 240 || item.text.filter({ $0 == "\n" }).count >= 5 {
-          Button { expanded.toggle() } label: {
-            Image(systemName: expanded ? "chevron.up" : "chevron.down").frame(width: 24, height: 24)
-          }.accessibilityLabel(expanded ? "Collapse saved text" : "Expand saved text")
-        }
+        Button { expanded.toggle() } label: {
+          Image(systemName: expanded ? "chevron.up" : "chevron.down").frame(width: 24, height: 24)
+        }.accessibilityLabel(expanded ? "Collapse saved text" : "Expand saved text")
         Button {
           title = item.title ?? ""
           editingTitle = true
@@ -180,13 +178,13 @@ private struct HubFilesView: View {
                 TrayFileIcon(
                   url: url, reveal: { model.reveal(url) }, began: { model.beginFileDrag() },
                   ended: { model.endFileDrag(url, accepted: $0) }, writer: { model.dragWriter(for: url) },
-                  enabled: !model.isChoosingFiles && !model.processingFiles && !model.pendingOnlineDrags.contains(url)
+                  enabled: !model.isChoosingFiles && !model.processingFiles && !model.pendingOnlineDrags.contains(url) && !model.uploadingFiles.contains(url)
                 ).saturation(0).frame(width: 36, height: 36)
                   .help("Drag out, or click to show in Finder")
                 Text(url.lastPathComponent).font(.system(size: 10)).lineLimit(1).truncationMode(.middle)
                   .help(url.lastPathComponent)
                 Button("Remove") { model.removeFile(url) }
-                  .disabled(model.processingFiles || model.pendingOnlineDrags.contains(url))
+                  .disabled(model.processingFiles || model.pendingOnlineDrags.contains(url) || model.uploadingFiles.contains(url))
                   .buttonStyle(.plain).font(.system(size: 10)).foregroundStyle(.white.opacity(0.7))
                   .accessibilityLabel("Remove \(url.lastPathComponent) from Hub")
               }.frame(width: 84)
