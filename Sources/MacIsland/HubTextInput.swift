@@ -16,6 +16,8 @@ struct HubTextInput: NSViewRepresentable {
     scroll.autohidesScrollers = true
     let editor = PasteTextView()
     editor.isRichText = false
+    editor.isEditable = true
+    editor.isSelectable = true
     editor.importsGraphics = false
     editor.drawsBackground = false
     editor.textColor = .white
@@ -27,6 +29,9 @@ struct HubTextInput: NSViewRepresentable {
     editor.textContainerInset = NSSize(width: 0, height: 6)
     editor.isVerticallyResizable = true
     editor.isHorizontallyResizable = false
+    editor.minSize = NSSize(width: 0, height: 36)
+    editor.maxSize = NSSize(width: .greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
+    editor.textContainer?.containerSize = NSSize(width: 0, height: .greatestFiniteMagnitude)
     editor.autoresizingMask = [.width]
     editor.textContainer?.widthTracksTextView = true
     editor.delegate = context.coordinator
@@ -70,6 +75,7 @@ struct HubTextInput: NSViewRepresentable {
 
 private final class PasteTextView: NSTextView {
   var didPaste: (() -> Void)?
+  override var needsPanelToBecomeKey: Bool { true }
 
   override func mouseDown(with event: NSEvent) {
     window?.makeKey()
@@ -92,6 +98,11 @@ private final class InputScrollView: NSScrollView {
   var didLayout: (() -> Void)?
   override func layout() {
     super.layout()
+    if let editor = documentView as? NSTextView {
+      let height = max(contentSize.height, editor.frame.height, 36)
+      let frame = NSRect(x: 0, y: 0, width: contentSize.width, height: height)
+      if editor.frame != frame { editor.frame = frame }
+    }
     didLayout?()
   }
 }

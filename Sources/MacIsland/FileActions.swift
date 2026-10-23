@@ -16,6 +16,7 @@ enum FileAction {
   case image(format: ImageOutput, maximumLongEdge: Int?)
   case imagePDF
   case compressPDF
+  case compressImage(format: ImageOutput, maximumBytes: Int)
 }
 
 struct FileActionResult {
@@ -39,7 +40,7 @@ enum FileActions {
   static func run(_ action: FileAction, sources: [URL], folder: URL) -> FileActionResult {
     switch action {
     case .zip: return archive(sources, folder: folder)
-    case .image, .imagePDF, .compressPDF:
+    case .image, .imagePDF, .compressPDF, .compressImage:
       var result = FileActionResult()
       for source in sources {
         do {
@@ -51,6 +52,11 @@ enum FileActions {
               result.files.append(try PDFFileActions.convertImage(source, folder: folder))
             case .compressPDF:
               let (file, note) = try PDFFileActions.compress(source, folder: folder)
+              if let file { result.files.append(file) }
+              result.notes.append(note)
+            case .compressImage(let format, let maximumBytes):
+              let (file, note) = try ImageCompression.compress(
+                source, folder: folder, format: format, maximumBytes: maximumBytes)
               if let file { result.files.append(file) }
               result.notes.append(note)
             case .zip: break
@@ -115,7 +121,17 @@ enum FileActions {
   }
 
   private static func image(_ url: URL, folder: URL, format: ImageOutput, maximum: Int?) throws -> URL {
-    var image = try decodeImage(url, maximum: maximum)
+    let image = try decodeImage(url, maximum: maximum)
+    let temporary = folder.appendingPathComponent(".mac-island-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: temporary) }
+    try encodeImage(image, to: temporary, format: format)
+    let tag = maximum == nil ? "converted" : "resized"
+    let name = url.deletingPathExtension().lastPathComponent + "-\(tag).\(format.suffix)"
+    return try publish(temporary, name: name, folder: folder)
+  }
+
+  static func encodeImage(_ source: CGImage, to url: URL, format: ImageOutput, quality: Double = 0.9) throws {
+    var image = source
     if format == .jpeg {
       guard let context = CGContext(
         data: nil, width: image.width, height: image.height, bitsPerComponent: 8,
@@ -129,16 +145,11 @@ enum FileActions {
       guard let flattened = context.makeImage() else { throw failure("JPEG conversion failed.") }
       image = flattened
     }
-    let temporary = folder.appendingPathComponent(".mac-island-\(UUID().uuidString)")
-    defer { try? FileManager.default.removeItem(at: temporary) }
     guard let destination = CGImageDestinationCreateWithURL(
-      temporary as CFURL, format.type.identifier as CFString, 1, nil)
+      url as CFURL, format.type.identifier as CFString, 1, nil)
     else { throw failure("The output folder cannot be written.") }
-    CGImageDestinationAddImage(destination, image, [kCGImageDestinationLossyCompressionQuality: 0.9] as CFDictionary)
+    CGImageDestinationAddImage(destination, image, [kCGImageDestinationLossyCompressionQuality: quality] as CFDictionary)
     guard CGImageDestinationFinalize(destination) else { throw failure("The image could not be saved.") }
-    let tag = maximum == nil ? "converted" : "resized"
-    let name = url.deletingPathExtension().lastPathComponent + "-\(tag).\(format.suffix)"
-    return try publish(temporary, name: name, folder: folder)
   }
 
   static func decodeImage(_ url: URL, maximum: Int? = nil) throws -> CGImage {

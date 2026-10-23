@@ -251,7 +251,7 @@ final class IslandModel: ObservableObject {
     let sources = files.filter { selectedFiles.contains($0) }
     guard !sources.isEmpty, !processingFiles, !isChoosingFiles else { return }
     switch action {
-    case .image, .imagePDF:
+    case .image, .imagePDF, .compressImage:
       let unsupported = FileActions.unsupportedImages(sources)
       if !unsupported.isEmpty {
         actionReport = "Select only PNG, JPEG, or HEIC images. Remove these items from the selection:\n"
