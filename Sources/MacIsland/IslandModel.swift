@@ -243,6 +243,10 @@ final class IslandModel: ObservableObject {
     NSPasteboard.general.setString(item.text, forType: .string)
   }
 
+  func openText(_ item: SavedItem) {
+    if let url = item.webURL { NSWorkspace.shared.open(url) }
+  }
+
   func performFileAction(_ action: FileAction) {
     let sources = files.filter { selectedFiles.contains($0) }
     guard !sources.isEmpty, !processingFiles, !isChoosingFiles else { return }

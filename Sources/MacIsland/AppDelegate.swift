@@ -5,7 +5,7 @@ import SwiftUI
 final class IslandPanel: NSPanel {
   var closeIsland: (() -> Void)?
   override var canBecomeKey: Bool { true }
-  override var canBecomeMain: Bool { false }
+  override var canBecomeMain: Bool { true }
   override func cancelOperation(_ sender: Any?) { closeIsland?() }
 }
 
@@ -136,6 +136,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let applicationMenu = NSMenu()
     applicationMenu.addItem(item("Open Island", action: #selector(openIsland), key: "o"))
     applicationMenu.addItem(item("Keep Island Open", action: #selector(togglePin), key: "p"))
+    applicationMenu.addItem(item("Add Files…", action: #selector(addFiles), key: ""))
     applicationMenu.addItem(.separator())
     applicationMenu.addItem(item("Quit Mac Island", action: #selector(quit), key: "q"))
     applicationItem.submenu = applicationMenu
@@ -166,7 +167,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationWillTerminate(_ notification: Notification) {
-    model.saveText()
     if let globalMouseMonitor { NSEvent.removeMonitor(globalMouseMonitor) }
     if let localMouseMonitor { NSEvent.removeMonitor(localMouseMonitor) }
   }
@@ -337,6 +337,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     model.setVisible(true)
     model.expand()
     panel.makeKeyAndOrderFront(nil)
+    panel.makeMain()
     NSApp.activate(ignoringOtherApps: true)
   }
   @objc private func toggleVisibility() {

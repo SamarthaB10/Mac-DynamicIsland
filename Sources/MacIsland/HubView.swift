@@ -69,8 +69,8 @@ private struct SavedTextView: View {
                   Button { model.copyText(item) } label: {
                     Image(systemName: "doc.on.doc").frame(width: 24, height: 24)
                   }.accessibilityLabel("Copy saved text").help("Copy")
-                  if let url = item.webURL {
-                    Button("Open") { NSWorkspace.shared.open(url) }
+                  if item.webURL != nil {
+                    Button("Open") { model.openText(item) }
                   }
                   Spacer()
                   Button { model.removeText(item) } label: {

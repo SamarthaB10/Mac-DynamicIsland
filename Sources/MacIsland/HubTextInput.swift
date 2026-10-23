@@ -55,8 +55,6 @@ struct HubTextInput: NSViewRepresentable {
       measure(editor)
     }
 
-    func textDidEndEditing(_ notification: Notification) { parent.save() }
-
     func measure(_ editor: NSTextView) {
       guard let container = editor.textContainer, let layout = editor.layoutManager else { return }
       layout.ensureLayout(for: container)
