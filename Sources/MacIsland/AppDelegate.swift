@@ -78,7 +78,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     hostingView.dragState = { [weak self] targeted in
       self?.model.setDropTarget(targeted)
     }
-    dropReceiver.addedFiles = { [weak self] in self?.model.addFiles($0) }
+    dropReceiver.addedFiles = { [weak self] urls, online in
+      if online { self?.model.addOnlineFiles(urls) } else { self?.model.addFiles(urls) }
+    }
     dropReceiver.failed = { [weak self] in self?.model.actionReport = $0 }
     hostingView.receiveDrop = { [weak self] in self?.dropReceiver.receive($0) ?? false }
     hostingView.sizingOptions = []
@@ -165,6 +167,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationWillTerminate(_ notification: Notification) {
+    dropReceiver.cleanup()
     if let globalMouseMonitor { NSEvent.removeMonitor(globalMouseMonitor) }
     if let localMouseMonitor { NSEvent.removeMonitor(localMouseMonitor) }
   }

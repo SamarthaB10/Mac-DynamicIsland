@@ -43,6 +43,8 @@ private struct SavedTextView: View {
           Image(systemName: "clipboard").frame(width: 24, height: 24)
         }.buttonStyle(.plain).accessibilityLabel("Paste and save").help("Paste and save")
       }
+      TextField("Title (optional)", text: $model.textTitle).textFieldStyle(.plain)
+        .font(.system(size: 12, weight: .medium)).accessibilityLabel("Title for new saved text")
       HStack(alignment: .bottom, spacing: 10) {
         HubTextInput(text: $model.textInput, height: $inputHeight, save: { model.saveText() })
           .frame(height: inputHeight)
@@ -68,29 +70,78 @@ private struct SavedTextView: View {
         ScrollView {
           LazyVStack(alignment: .leading, spacing: 10) {
             ForEach(model.savedItems) { item in
-              VStack(alignment: .leading, spacing: 6) {
-                Text(item.text).font(.system(size: 12)).textSelection(.enabled)
-                  .frame(maxWidth: .infinity, alignment: .leading)
-                HStack(spacing: 16) {
-                  Button { model.copyText(item) } label: {
-                    Image(systemName: "doc.on.doc").frame(width: 24, height: 24)
-                  }.accessibilityLabel("Copy saved text").help("Copy")
-                  if item.webURL != nil {
-                    Button("Open") { model.openText(item) }
-                  }
-                  Spacer()
-                  Button { model.removeText(item) } label: {
-                    Image(systemName: "xmark").frame(width: 24, height: 24)
-                  }.accessibilityLabel("Remove saved text").help("Remove")
-                }.buttonStyle(.plain).font(.system(size: 11, weight: .medium))
-              }.padding(.vertical, 6)
+              SavedTextRow(model: model, item: item)
+                .dropDestination(for: String.self) { values, _ in
+                  guard let value = values.first, let id = UUID(uuidString: value) else { return false }
+                  model.moveText(id, before: item.id)
+                  return true
+                }
               Divider().overlay(.white.opacity(0.15))
             }
+            Color.clear.frame(height: 16).contentShape(Rectangle())
+              .help("Drop here to move saved text to the end")
+              .dropDestination(for: String.self) { values, _ in
+                guard let value = values.first, let id = UUID(uuidString: value) else { return false }
+                model.moveText(id, before: nil)
+                return true
+              }
           }
         }
       }
     }
     .contextMenu { Button("Paste") { model.pasteText() } }
+  }
+}
+
+private struct SavedTextRow: View {
+  @ObservedObject var model: IslandModel
+  let item: SavedItem
+  @State private var editingTitle = false
+  @State private var title = ""
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 6) {
+      HStack {
+        if editingTitle {
+          TextField("Title", text: $title).textFieldStyle(.plain).onSubmit(saveTitle)
+            .accessibilityLabel("Saved text title")
+          Button(action: saveTitle) { Image(systemName: "checkmark").frame(width: 24, height: 24) }
+            .buttonStyle(.plain).accessibilityLabel("Save title").help("Save title")
+        } else {
+          if let title = item.title { Text(title).font(.system(size: 12, weight: .semibold)) }
+          Spacer()
+          Image(systemName: "line.3.horizontal").frame(width: 24, height: 20)
+            .foregroundStyle(.white.opacity(0.6)).draggable(item.id.uuidString)
+            .accessibilityLabel("Reorder saved text").help("Drag to reorder")
+            .contextMenu {
+              Button("Move to top") { model.moveText(item.id, before: model.savedItems.first?.id) }
+              Button("Move to end") { model.moveText(item.id, before: nil) }
+            }
+        }
+      }
+      Text(item.text).font(.system(size: 12)).textSelection(.enabled)
+        .frame(maxWidth: .infinity, alignment: .leading)
+      HStack(spacing: 12) {
+        Button { model.copyText(item) } label: {
+          Image(systemName: "doc.on.doc").frame(width: 24, height: 24)
+        }.accessibilityLabel("Copy saved text").help("Copy")
+        if item.webURL != nil { Button("Open") { model.openText(item) } }
+        Button {
+          title = item.title ?? ""
+          editingTitle = true
+        } label: { Image(systemName: "pencil").frame(width: 24, height: 24) }
+          .accessibilityLabel("Edit saved text title").help("Edit title")
+        Spacer()
+        Button { model.removeText(item) } label: {
+          Image(systemName: "xmark").frame(width: 24, height: 24)
+        }.accessibilityLabel("Remove saved text").help("Remove")
+      }.buttonStyle(.plain).font(.system(size: 11, weight: .medium))
+    }.padding(.vertical, 6)
+  }
+
+  private func saveTitle() {
+    model.setTextTitle(item.id, title: title)
+    editingTitle = false
   }
 }
 
@@ -128,7 +179,7 @@ private struct HubFilesView: View {
                   .accessibilityLabel("Select \(url.lastPathComponent)")
                 TrayFileIcon(
                   url: url, reveal: { model.reveal(url) }, began: { model.beginFileDrag() },
-                  ended: { model.endFileDrag(url, accepted: $0) }
+                  ended: { model.endFileDrag(url, accepted: $0) }, writer: { model.dragWriter(for: url) }
                 ).saturation(0).frame(width: 36, height: 36)
                   .help("Drag out, or click to show in Finder")
                 Text(url.lastPathComponent).font(.system(size: 10)).lineLimit(1).truncationMode(.middle)
@@ -152,14 +203,19 @@ private struct HubFilesView: View {
       if model.processingFiles {
         HStack { ProgressView().controlSize(.small); Text("Creating result files…") }
       } else if showingOptions {
-        HStack(spacing: 6) {
+        ScrollView(.horizontal) {
+          HStack(spacing: 6) {
           actionButton("Create ZIP", symbol: "archivebox") { model.performFileAction(.zip) }
           actionButton("Resize Images", symbol: "arrow.up.left.and.arrow.down.right") { configure(.resize) }
           actionButton("Convert Images", symbol: "arrow.triangle.2.circlepath") { configure(.convert) }
           actionButton("Images to PDF", symbol: "doc.richtext") { model.performFileAction(.imagePDF) }
           actionButton("Compress Images", symbol: "arrow.down.right.and.arrow.up.left") { configure(.compress) }
           actionButton("Compress PDFs", symbol: "doc.zipper") { model.performFileAction(.compressPDF) }
-        }.disabled(model.selectedFiles.isEmpty || model.isChoosingFiles)
+            if !model.selectedFiles.intersection(model.onlineFiles).isEmpty {
+              actionButton("Save to Downloads", symbol: "arrow.down.to.line") { model.saveOnlineFilesToDownloads() }
+            }
+          }.padding(.vertical, 2)
+        }.frame(height: 70).disabled(model.selectedFiles.isEmpty || model.isChoosingFiles)
       }
       HStack {
         Button { model.openGoogleDrive?() } label: {

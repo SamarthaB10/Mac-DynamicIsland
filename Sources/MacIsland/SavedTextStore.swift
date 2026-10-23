@@ -3,6 +3,7 @@ import Foundation
 struct SavedItem: Codable, Identifiable {
   let id: UUID
   let text: String
+  var title: String?
 
   var webURL: URL? {
     guard !text.contains(where: { $0.isWhitespace }),

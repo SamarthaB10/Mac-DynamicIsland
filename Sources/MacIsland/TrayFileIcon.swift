@@ -6,6 +6,7 @@ struct TrayFileIcon: NSViewRepresentable {
   let reveal: () -> Void
   let began: () -> Void
   let ended: (Bool) -> Void
+  let writer: () -> NSPasteboardWriting
 
   func makeNSView(context: Context) -> TrayFileIconView { TrayFileIconView() }
 
@@ -16,6 +17,7 @@ struct TrayFileIcon: NSViewRepresentable {
     view.reveal = reveal
     view.began = began
     view.ended = ended
+    view.writer = writer
     view.setAccessibilityElement(true)
     view.setAccessibilityRole(.button)
     view.setAccessibilityLabel("Show \(url.lastPathComponent) in Finder")
@@ -28,6 +30,7 @@ final class TrayFileIconView: NSImageView, NSDraggingSource {
   var reveal: (() -> Void)?
   var began: (() -> Void)?
   var ended: ((Bool) -> Void)?
+  var writer: (() -> NSPasteboardWriting)?
   private var mouseOrigin: NSPoint?
   private var dragging = false
   private var sourceFrame = NSRect.zero
@@ -47,7 +50,7 @@ final class TrayFileIconView: NSImageView, NSDraggingSource {
     dragging = true
     sourceFrame = window?.frame ?? .zero
     began?()
-    let item = NSDraggingItem(pasteboardWriter: url as NSURL)
+    let item = NSDraggingItem(pasteboardWriter: writer?() ?? url as NSURL)
     item.setDraggingFrame(bounds, contents: image)
     beginDraggingSession(with: [item], event: event, source: self)
   }

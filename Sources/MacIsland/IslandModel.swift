@@ -21,6 +21,11 @@ final class IslandModel: ObservableObject {
   @Published var selectedFiles: Set<URL> = []
   @Published private(set) var savedItems: [SavedItem] = []
   @Published var textInput = ""
+  @Published var textTitle = ""
+  @Published private(set) var onlineFiles: Set<URL> = []
+  private var outgoingPromises: [URL: HubFilePromise] = [:]
+  private var acceptedOnlineDrags: Set<URL> = []
+  private var deliveredOnlineDrags: Set<URL> = []
   @Published var textError: String?
   @Published var actionReport: String?
   @Published private(set) var processingFiles = false
@@ -145,7 +150,16 @@ final class IslandModel: ObservableObject {
     send(5)
   }
   func endFileDrag(_ url: URL, accepted: Bool) {
-    if accepted { removeFile(url) }
+    if onlineFiles.contains(url) {
+      if accepted {
+        acceptedOnlineDrags.insert(url)
+        finishOnlineDrag(url)
+      } else {
+        outgoingPromises.removeValue(forKey: url)
+        acceptedOnlineDrags.remove(url)
+        deliveredOnlineDrags.remove(url)
+      }
+    } else if accepted { removeFile(url) }
     draggingFile = false
     updateFileInteraction()
   }
@@ -200,13 +214,25 @@ final class IslandModel: ObservableObject {
   }
 
   func removeFile(_ url: URL) {
+    if onlineFiles.contains(url) {
+      do { try FileManager.default.removeItem(at: url) }
+      catch {
+        fileError = "The temporary online file could not be removed. \(error.localizedDescription)"
+        return
+      }
+      onlineFiles.remove(url)
+    }
     files.removeAll { $0 == url }
     selectedFiles.remove(url)
   }
 
   func saveText() {
     guard !textInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-    if persistText([SavedItem(id: UUID(), text: textInput)] + savedItems) { textInput = "" }
+    let title = textTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+    if persistText([SavedItem(id: UUID(), text: textInput, title: title.isEmpty ? nil : title)] + savedItems) {
+      textInput = ""
+      textTitle = ""
+    }
   }
 
   @discardableResult
@@ -223,6 +249,78 @@ final class IslandModel: ObservableObject {
 
   func removeText(_ item: SavedItem) {
     _ = persistText(savedItems.filter { $0.id != item.id })
+  }
+
+  func setTextTitle(_ id: UUID, title: String) {
+    var items = savedItems
+    guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+    let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+    items[index].title = trimmed.isEmpty ? nil : trimmed
+    _ = persistText(items)
+  }
+
+  func moveText(_ id: UUID, before target: UUID?) {
+    guard id != target, let item = savedItems.first(where: { $0.id == id }) else { return }
+    var items = savedItems.filter { $0.id != id }
+    let index = target.flatMap { target in items.firstIndex { $0.id == target } } ?? items.count
+    items.insert(item, at: index)
+    _ = persistText(items)
+  }
+
+  func addOnlineFiles(_ urls: [URL]) {
+    onlineFiles.formUnion(urls.map(\.standardizedFileURL))
+    addFiles(urls)
+  }
+
+  func dragWriter(for url: URL) -> NSPasteboardWriting {
+    guard onlineFiles.contains(url) else { return url as NSURL }
+    acceptedOnlineDrags.remove(url)
+    deliveredOnlineDrags.remove(url)
+    let promise = HubFilePromise(url: url) { [weak self] error in
+      guard let self else { return }
+      if let error {
+        self.fileError = "The online file could not be delivered. \(error.localizedDescription)"
+        self.outgoingPromises.removeValue(forKey: url)
+        self.acceptedOnlineDrags.remove(url)
+      } else {
+        self.deliveredOnlineDrags.insert(url)
+        self.finishOnlineDrag(url)
+      }
+    }
+    outgoingPromises[url] = promise
+    return promise.provider
+  }
+
+  private func finishOnlineDrag(_ url: URL) {
+    guard acceptedOnlineDrags.contains(url), deliveredOnlineDrags.contains(url) else { return }
+    removeFile(url)
+    outgoingPromises.removeValue(forKey: url)
+    acceptedOnlineDrags.remove(url)
+    deliveredOnlineDrags.remove(url)
+  }
+
+  func saveOnlineFilesToDownloads() {
+    let sources = files.filter { selectedFiles.contains($0) && onlineFiles.contains($0) }
+    guard !sources.isEmpty, !isChoosingFiles else { return }
+    isChoosingFiles = true
+    processingFiles = true
+    Task {
+      let result = await Task.detached(priority: .userInitiated) {
+        var result = FileActionResult()
+        let folder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0]
+        for source in sources {
+          do { result.files.append(try FileActions.publish(source, name: source.lastPathComponent, folder: folder)) }
+          catch { result.failures.append("\(source.lastPathComponent): \(error.localizedDescription)") }
+        }
+        return result
+      }.value
+      self.addFiles(result.files)
+      self.processingFiles = false
+      self.isChoosingFiles = false
+      self.actionReport = "Saved \(result.files.count) file(s) to Downloads. These copies stay on this Mac."
+        + (result.failures.isEmpty ? "" : "\nFailed:\n" + result.failures.joined(separator: "\n"))
+      self.openForKeyboard?()
+    }
   }
 
   private func persistText(_ items: [SavedItem]) -> Bool {

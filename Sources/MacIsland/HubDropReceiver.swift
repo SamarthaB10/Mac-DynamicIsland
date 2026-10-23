@@ -2,13 +2,15 @@ import AppKit
 
 @MainActor
 final class HubDropReceiver {
-  var addedFiles: (([URL]) -> Void)?
+  var addedFiles: (([URL], Bool) -> Void)?
   var failed: ((String) -> Void)?
   private let promiseQueue: OperationQueue = {
     let queue = OperationQueue()
     queue.maxConcurrentOperationCount = 1
     return queue
   }()
+  private let sessionFolder = FileManager.default.temporaryDirectory
+    .appendingPathComponent("Mac Island Online Drops/\(UUID().uuidString)")
 
   static let types = [NSPasteboard.PasteboardType.fileURL, .URL, .png, .tiff]
     + NSFilePromiseReceiver.readableDraggedTypes.map { NSPasteboard.PasteboardType($0) }
@@ -20,7 +22,7 @@ final class HubDropReceiver {
   func receive(_ pasteboard: NSPasteboard) -> Bool {
     let local = pasteboard.readObjects(
       forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
-    if !local.isEmpty { addedFiles?(local); return true }
+    if !local.isEmpty { addedFiles?(local, false); return true }
     do {
       let folder = try downloadsFolder()
       let promises = pasteboard.readObjects(forClasses: [NSFilePromiseReceiver.self]) as? [NSFilePromiseReceiver] ?? []
@@ -33,7 +35,7 @@ final class HubDropReceiver {
             [weak self] url, error in
             Task { @MainActor in
               if let error { self?.failed?("The browser file could not be added. \(error.localizedDescription)") }
-              else { self?.addedFiles?([url]) }
+              else { self?.addedFiles?([url], true) }
             }
           }
         }
@@ -70,7 +72,7 @@ final class HubDropReceiver {
             completed.append(result)
           } catch { failures.append("A browser download failed. \(error.localizedDescription)") }
         }
-        if !completed.isEmpty { addedFiles?(completed) }
+        if !completed.isEmpty { addedFiles?(completed, true) }
         if !failures.isEmpty { failed?(failures.joined(separator: "\n")) }
       }
       return true
@@ -81,8 +83,7 @@ final class HubDropReceiver {
   }
 
   private func downloadsFolder() throws -> URL {
-    let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-      .appendingPathComponent("Mac Island/Hub Downloads")
+    let folder = sessionFolder
     try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
     return folder
   }
@@ -91,6 +92,8 @@ final class HubDropReceiver {
     let temporary = folder.appendingPathComponent(".mac-island-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: temporary) }
     try data.write(to: temporary, options: .withoutOverwriting)
-    addedFiles?([try FileActions.publish(temporary, name: "Image.png", folder: folder)])
+    addedFiles?([try FileActions.publish(temporary, name: "Image.png", folder: folder)], true)
   }
+
+  func cleanup() { try? FileManager.default.removeItem(at: sessionFolder) }
 }
