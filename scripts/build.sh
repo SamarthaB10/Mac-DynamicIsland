@@ -26,5 +26,7 @@ else
   cp "$BIN_DIR/MacIsland" "$APP/Contents/MacOS/MacIsland"
 fi
 cp scripts/Info.plist "$APP/Contents/Info.plist"
+mkdir -p "$APP/Contents/Resources"
+cp Resources/Google.png "$APP/Contents/Resources/Google.png"
 codesign --force --sign - --entitlements scripts/MacIsland.entitlements "$APP"
 echo "Built $APP"

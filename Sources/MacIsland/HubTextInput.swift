@@ -30,8 +30,8 @@ struct HubTextInput: NSViewRepresentable {
     editor.isVerticallyResizable = true
     editor.isHorizontallyResizable = false
     editor.minSize = NSSize(width: 0, height: 36)
-    editor.maxSize = NSSize(width: .greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
-    editor.textContainer?.containerSize = NSSize(width: 0, height: .greatestFiniteMagnitude)
+    editor.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+    editor.textContainer?.containerSize = NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude)
     editor.autoresizingMask = [.width]
     editor.textContainer?.widthTracksTextView = true
     editor.delegate = context.coordinator

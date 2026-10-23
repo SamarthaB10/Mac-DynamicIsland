@@ -11,19 +11,18 @@ final class IslandPanel: NSPanel {
 
 final class IslandHostingView<Content: View>: NSHostingView<Content> {
   var dragState: ((Bool) -> Void)?
-  var dropFiles: (([URL]) -> Void)?
+  var receiveDrop: ((NSPasteboard) -> Bool)?
 
   override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
     guard !(sender.draggingSource is TrayFileIconView),
-      sender.draggingPasteboard.canReadObject(
-        forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true])
+      HubDropReceiver.canRead(sender.draggingPasteboard)
     else { return [] }
     dragState?(true)
     return .copy
   }
 
   override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
-    sender.draggingSource is TrayFileIconView ? [] : .copy
+    sender.draggingSource is TrayFileIconView || !HubDropReceiver.canRead(sender.draggingPasteboard) ? [] : .copy
   }
 
   override func draggingExited(_ sender: NSDraggingInfo?) { dragState?(false) }
@@ -31,12 +30,8 @@ final class IslandHostingView<Content: View>: NSHostingView<Content> {
 
   override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
     guard !(sender.draggingSource is TrayFileIconView) else { return false }
-    let files = sender.draggingPasteboard.readObjects(
-      forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
     dragState?(false)
-    guard !files.isEmpty else { return false }
-    dropFiles?(files)
-    return true
+    return receiveDrop?(sender.draggingPasteboard) ?? false
   }
 }
 
@@ -57,6 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var gestureHandled = false
   private var dragOrigin: NSPoint?
   private var externalFileDrag = false
+  private let dropReceiver = HubDropReceiver()
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     configureEditMenu()
@@ -78,11 +74,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     model.islandWindow = panel
     panel.closeIsland = { [weak self] in self?.model.collapse(force: true) }
     let hostingView = IslandHostingView(rootView: IslandView(model: model).preferredColorScheme(.dark))
-    hostingView.registerForDraggedTypes([.fileURL])
+    hostingView.registerForDraggedTypes(HubDropReceiver.types)
     hostingView.dragState = { [weak self] targeted in
       self?.model.setDropTarget(targeted)
     }
-    hostingView.dropFiles = { [weak self] in self?.model.addFiles($0) }
+    dropReceiver.addedFiles = { [weak self] in self?.model.addFiles($0) }
+    dropReceiver.failed = { [weak self] in self?.model.actionReport = $0 }
+    hostingView.receiveDrop = { [weak self] in self?.dropReceiver.receive($0) ?? false }
     hostingView.sizingOptions = []
     panel.contentView = hostingView
     model.updateInteraction = { [weak self] in
@@ -237,8 +235,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   private func handleMouse(_ event: NSEvent) {
     if event.type == .leftMouseDragged, !model.draggingFile {
-      externalFileDrag = NSPasteboard(name: .drag).canReadObject(
-        forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true])
+      externalFileDrag = HubDropReceiver.canRead(NSPasteboard(name: .drag))
     } else if event.type == .leftMouseUp { externalFileDrag = false }
     if handleSwipe(event) { return }
     updatePointer()

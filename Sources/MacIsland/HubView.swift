@@ -206,18 +206,13 @@ private struct HubFilesView: View {
 }
 
 private struct GoogleMark: View {
+  private static let image = Bundle.main.url(forResource: "Google", withExtension: "png")
+    .flatMap { NSImage(contentsOf: $0) }
+
   var body: some View {
-    GeometryReader { geometry in
-      let size = geometry.size.width
-      Path { path in
-        path.addArc(
-          center: CGPoint(x: size / 2, y: size / 2), radius: size * 0.4,
-          startAngle: .degrees(40), endAngle: .degrees(320), clockwise: false)
-        path.move(to: CGPoint(x: size * 0.52, y: size * 0.5))
-        path.addLine(to: CGPoint(x: size * 0.9, y: size * 0.5))
-        path.addLine(to: CGPoint(x: size * 0.9, y: size * 0.7))
-      }.stroke(.white, style: StrokeStyle(lineWidth: size * 0.16, lineCap: .butt))
-    }
+    if let image = Self.image {
+      Image(nsImage: image).resizable().aspectRatio(contentMode: .fit)
+    } else { Text("G").font(.system(size: 16, weight: .semibold)) }
   }
 }
 
