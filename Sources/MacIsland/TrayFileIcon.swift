@@ -19,7 +19,7 @@ struct TrayFileIcon: NSViewRepresentable {
     view.setAccessibilityElement(true)
     view.setAccessibilityRole(.button)
     view.setAccessibilityLabel("Show \(url.lastPathComponent) in Finder")
-    view.setAccessibilityHelp("Drag to another app to take this file out of the tray.")
+    view.setAccessibilityHelp("Drag to another app to take this file out of the Hub.")
   }
 }
 

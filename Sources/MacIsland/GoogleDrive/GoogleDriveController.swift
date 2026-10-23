@@ -218,7 +218,7 @@ final class GoogleDriveController: ObservableObject {
       let destination = folder.appendingPathComponent(name)
       try FileManager.default.moveItem(at: temporary, to: destination)
       self.receivedFile?(destination)
-      self.status = "Added \(name) to File Tray."
+      self.status = "Added \(name) to Hub."
     }
   }
 

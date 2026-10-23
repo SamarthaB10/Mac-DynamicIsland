@@ -1,0 +1,246 @@
+import SwiftUI
+
+enum HubSection: String, CaseIterable {
+  case files = "Files"
+  case savedText = "Saved Text"
+}
+
+struct HubView: View {
+  @ObservedObject var model: IslandModel
+
+  var body: some View {
+    VStack(spacing: 12) {
+      Picker("Hub view", selection: $model.hubView) {
+        ForEach(HubSection.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+      }.pickerStyle(.segmented).labelsHidden()
+      if model.hubView == .files {
+        HubFilesView(model: model)
+      } else {
+        SavedTextView(model: model)
+      }
+    }
+    .onChange(of: model.hubView) { _, section in
+      if section == .savedText { model.openForKeyboard?() }
+    }
+    .alert("File action", isPresented: Binding(
+      get: { model.actionReport != nil }, set: { if !$0 { model.actionReport = nil } })
+    ) {
+      Button("OK") { model.actionReport = nil }
+    } message: { Text(model.actionReport ?? "") }
+  }
+}
+
+private struct SavedTextView: View {
+  @ObservedObject var model: IslandModel
+  @State private var inputHeight: CGFloat = 36
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack {
+        Text("Paste to save").foregroundStyle(.white.opacity(0.7))
+        Spacer()
+        Button { model.pasteText() } label: {
+          Image(systemName: "clipboard").frame(width: 24, height: 24)
+        }.buttonStyle(.plain).accessibilityLabel("Paste and save").help("Paste and save")
+      }
+      HStack(alignment: .bottom, spacing: 10) {
+        HubTextInput(text: $model.textInput, height: $inputHeight, save: { model.saveText() })
+          .frame(height: inputHeight)
+      }
+      if let error = model.textError {
+        Text(error).font(.system(size: 11)).textSelection(.enabled)
+      }
+      if model.savedItems.isEmpty {
+        Text("Saved text stays on this Mac until you remove it.")
+          .font(.system(size: 11)).foregroundStyle(.white.opacity(0.7))
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else {
+        ScrollView {
+          LazyVStack(alignment: .leading, spacing: 10) {
+            ForEach(model.savedItems) { item in
+              VStack(alignment: .leading, spacing: 6) {
+                Text(item.text).font(.system(size: 12)).textSelection(.enabled)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                HStack(spacing: 16) {
+                  Button { model.copyText(item) } label: {
+                    Image(systemName: "doc.on.doc").frame(width: 24, height: 24)
+                  }.accessibilityLabel("Copy saved text").help("Copy")
+                  if let url = item.webURL {
+                    Button("Open") { NSWorkspace.shared.open(url) }
+                  }
+                  Spacer()
+                  Button { model.removeText(item) } label: {
+                    Image(systemName: "xmark").frame(width: 24, height: 24)
+                  }.accessibilityLabel("Remove saved text").help("Remove")
+                }.buttonStyle(.plain).font(.system(size: 11, weight: .medium))
+              }.padding(.vertical, 6)
+              Divider().overlay(.white.opacity(0.15))
+            }
+          }
+        }
+      }
+    }
+    .contextMenu { Button("Paste") { model.pasteText() } }
+  }
+}
+
+private struct HubFilesView: View {
+  @ObservedObject var model: IslandModel
+  @State private var imageAction: ImageActionConfiguration?
+  @State private var pendingImageAction: FileAction?
+
+  var body: some View {
+    VStack(spacing: 10) {
+      HStack {
+        Text("\(model.selectedFiles.count) selected").foregroundStyle(.white.opacity(0.7))
+        Spacer()
+        Button(model.selectedFiles.count == model.files.count ? "Clear Selection" : "Select All") {
+          model.selectedFiles = model.selectedFiles.count == model.files.count ? [] : Set(model.files)
+        }.disabled(model.files.isEmpty)
+      }.font(.system(size: 11))
+      if model.files.isEmpty {
+        Button { model.chooseFiles() } label: {
+          Image(systemName: "tray.and.arrow.down").font(.system(size: 24, weight: .light))
+            .frame(maxWidth: .infinity, maxHeight: .infinity).contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityLabel("Add Files").help("Add Files")
+          .disabled(model.isChoosingFiles)
+      } else {
+        ScrollView(.horizontal) {
+          HStack(alignment: .top, spacing: 12) {
+            ForEach(model.files, id: \.self) { url in
+              VStack(spacing: 5) {
+                Toggle(isOn: Binding(
+                  get: { model.selectedFiles.contains(url) },
+                  set: { if $0 { model.selectedFiles.insert(url) } else { model.selectedFiles.remove(url) } }
+                )) { Text("Select \(url.lastPathComponent)") }
+                  .labelsHidden().toggleStyle(.checkbox)
+                  .accessibilityLabel("Select \(url.lastPathComponent)")
+                TrayFileIcon(
+                  url: url, reveal: { model.reveal(url) }, began: { model.beginFileDrag() },
+                  ended: { model.endFileDrag(url, accepted: $0) }
+                ).saturation(0).frame(width: 36, height: 36)
+                  .help("Drag out, or click to show in Finder")
+                Text(url.lastPathComponent).font(.system(size: 10)).lineLimit(1).truncationMode(.middle)
+                  .help(url.lastPathComponent)
+                Button("Remove") { model.removeFile(url) }
+                  .buttonStyle(.plain).font(.system(size: 10)).foregroundStyle(.white.opacity(0.7))
+                  .accessibilityLabel("Remove \(url.lastPathComponent) from Hub")
+              }.frame(width: 84)
+            }
+            Button { model.chooseFiles() } label: {
+              Image(systemName: "tray.and.arrow.down").font(.system(size: 24, weight: .light))
+                .frame(width: 84, height: 100)
+            }.buttonStyle(.plain).accessibilityLabel("Add Files").help("Add Files")
+              .disabled(model.isChoosingFiles)
+          }.padding(.vertical, 3)
+        }.frame(maxHeight: .infinity)
+      }
+      if let error = model.fileError {
+        Text(error).font(.system(size: 11)).textSelection(.enabled)
+      }
+      if model.processingFiles {
+        HStack { ProgressView().controlSize(.small); Text("Creating result files…") }
+      } else {
+        Menu {
+          Button("Create ZIP / Compress Files") { model.performFileAction(.zip) }
+          Divider()
+          Button("Resize Images…") {
+            model.configuringImages = true
+            imageAction = ImageActionConfiguration(resize: true)
+          }
+          Button("Convert Images…") {
+            model.configuringImages = true
+            imageAction = ImageActionConfiguration(resize: false)
+          }
+          Button("Images to PDF") { model.performFileAction(.imagePDF) }
+          Divider()
+          Button("Compress PDFs") { model.performFileAction(.compressPDF) }
+        } label: {
+          Label("Options", systemImage: "ellipsis.circle")
+        }.menuStyle(.borderlessButton).fixedSize()
+          .font(.system(size: 11)).disabled(model.selectedFiles.isEmpty || model.isChoosingFiles)
+      }
+      HStack {
+        Button { model.openGoogleDrive?() } label: {
+          GoogleMark().frame(width: 16, height: 16).frame(width: 28, height: 28)
+        }.accessibilityLabel("Google Drive").help("Google Drive")
+        Spacer()
+      }.buttonStyle(.plain).font(.system(size: 11))
+    }
+    .sheet(item: $imageAction, onDismiss: {
+      model.configuringImages = false
+      if let action = pendingImageAction {
+        pendingImageAction = nil
+        model.performFileAction(action)
+      }
+    }) { configuration in
+      ImageActionView(resize: configuration.resize) { action in
+        pendingImageAction = action
+        imageAction = nil
+      }
+    }
+  }
+}
+
+private struct GoogleMark: View {
+  var body: some View {
+    GeometryReader { geometry in
+      let size = geometry.size.width
+      Path { path in
+        path.addArc(
+          center: CGPoint(x: size / 2, y: size / 2), radius: size * 0.4,
+          startAngle: .degrees(40), endAngle: .degrees(320), clockwise: false)
+        path.move(to: CGPoint(x: size * 0.52, y: size * 0.5))
+        path.addLine(to: CGPoint(x: size * 0.9, y: size * 0.5))
+        path.addLine(to: CGPoint(x: size * 0.9, y: size * 0.7))
+      }.stroke(.white, style: StrokeStyle(lineWidth: size * 0.16, lineCap: .butt))
+    }
+  }
+}
+
+private struct ImageActionConfiguration: Identifiable {
+  let id = UUID()
+  let resize: Bool
+}
+
+private struct ImageActionView: View {
+  let resize: Bool
+  let perform: (FileAction) -> Void
+  @Environment(\.dismiss) private var dismiss
+  @State private var format = ImageOutput.png
+  @State private var preset = 1024
+  @State private var custom = ""
+
+  private var maximum: Int? { preset == 0 ? Int(custom) : preset }
+  private var valid: Bool { !resize || (maximum.map { $0 > 0 } ?? false) }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      Text(resize ? "Resize Images" : "Convert Images").font(.headline)
+      Picker("Output format", selection: $format) {
+        ForEach(ImageOutput.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+      }
+      if resize {
+        Picker("Maximum long edge", selection: $preset) {
+          Text("512 pixels").tag(512)
+          Text("1024 pixels").tag(1024)
+          Text("2048 pixels").tag(2048)
+          Text("Custom").tag(0)
+        }
+        if preset == 0 {
+          TextField("Pixels (positive whole number)", text: $custom)
+            .accessibilityLabel("Custom maximum long edge in pixels")
+        }
+        Text("Keep proportions. Smaller images stay at their current size.").font(.caption)
+      }
+      Text("Source files stay unchanged. JPEG uses a white background.").font(.caption)
+      HStack {
+        Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+        Spacer()
+        Button("Choose Output Folder…") {
+          perform(.image(format: format, maximumLongEdge: resize ? maximum : nil))
+        }.disabled(!valid).keyboardShortcut(.defaultAction)
+      }
+    }.padding(24).frame(width: 380)
+  }
+}

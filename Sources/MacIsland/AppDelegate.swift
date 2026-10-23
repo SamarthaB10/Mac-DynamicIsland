@@ -2,33 +2,42 @@ import AppKit
 import Combine
 import SwiftUI
 
-final class IslandPanel: NSPanel, NSDraggingDestination {
+final class IslandPanel: NSPanel {
   var closeIsland: (() -> Void)?
+  override var canBecomeKey: Bool { true }
+  override var canBecomeMain: Bool { false }
+  override func cancelOperation(_ sender: Any?) { closeIsland?() }
+}
+
+final class IslandHostingView<Content: View>: NSHostingView<Content> {
   var dragState: ((Bool) -> Void)?
   var dropFiles: (([URL]) -> Void)?
-  func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
-    guard !(sender.draggingSource is TrayFileIconView) else { return [] }
+
+  override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+    guard !(sender.draggingSource is TrayFileIconView),
+      sender.draggingPasteboard.canReadObject(
+        forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true])
+    else { return [] }
     dragState?(true)
     return .copy
   }
-  func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+
+  override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
     sender.draggingSource is TrayFileIconView ? [] : .copy
   }
-  func draggingExited(_ sender: NSDraggingInfo?) { dragState?(false) }
-  func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool { true }
-  func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+
+  override func draggingExited(_ sender: NSDraggingInfo?) { dragState?(false) }
+  override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool { true }
+
+  override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
     guard !(sender.draggingSource is TrayFileIconView) else { return false }
-    let files =
-      sender.draggingPasteboard.readObjects(
-        forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
+    let files = sender.draggingPasteboard.readObjects(
+      forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
     dragState?(false)
     guard !files.isEmpty else { return false }
     dropFiles?(files)
     return true
   }
-  override var canBecomeKey: Bool { true }
-  override var canBecomeMain: Bool { false }
-  override func cancelOperation(_ sender: Any?) { closeIsland?() }
 }
 
 @MainActor
@@ -47,8 +56,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var horizontalScroll: CGFloat = 0
   private var gestureHandled = false
   private var dragOrigin: NSPoint?
+  private var externalFileDrag = false
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    configureEditMenu()
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     statusItem.button?.image = NSImage(
       systemSymbolName: "capsule.fill", accessibilityDescription: "Mac Island")
@@ -64,11 +75,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     panel.hasShadow = false
     panel.hidesOnDeactivate = false
     panel.isReleasedWhenClosed = false
-    panel.registerForDraggedTypes([.fileURL])
-    panel.dragState = { [weak self] in self?.model.setDropTarget($0) }
-    panel.dropFiles = { [weak self] in self?.model.addFiles($0) }
+    model.islandWindow = panel
     panel.closeIsland = { [weak self] in self?.model.collapse(force: true) }
-    let hostingView = NSHostingView(rootView: IslandView(model: model).preferredColorScheme(.dark))
+    let hostingView = IslandHostingView(rootView: IslandView(model: model).preferredColorScheme(.dark))
+    hostingView.registerForDraggedTypes([.fileURL])
+    hostingView.dragState = { [weak self] targeted in
+      self?.model.setDropTarget(targeted)
+    }
+    hostingView.dropFiles = { [weak self] in self?.model.addFiles($0) }
     hostingView.sizingOptions = []
     panel.contentView = hostingView
     model.updateInteraction = { [weak self] in
@@ -116,7 +130,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     model.weather.refreshIfNeeded()
   }
 
+  private func configureEditMenu() {
+    let main = NSMenu()
+    let applicationItem = NSMenuItem()
+    let applicationMenu = NSMenu()
+    applicationMenu.addItem(item("Open Island", action: #selector(openIsland), key: "o"))
+    applicationMenu.addItem(item("Keep Island Open", action: #selector(togglePin), key: "p"))
+    applicationMenu.addItem(.separator())
+    applicationMenu.addItem(item("Quit Mac Island", action: #selector(quit), key: "q"))
+    applicationItem.submenu = applicationMenu
+    main.addItem(applicationItem)
+    let editItem = NSMenuItem()
+    let edit = NSMenu(title: "Edit")
+    for (title, action, key) in [
+      ("Undo", "undo:", "z"), ("Cut", "cut:", "x"), ("Copy", "copy:", "c"),
+      ("Paste", "paste:", "v"), ("Select All", "selectAll:", "a"),
+    ] {
+      if action == "paste:" {
+        edit.addItem(item(title, action: #selector(pasteIntoHub), key: key))
+      } else {
+        edit.addItem(NSMenuItem(title: title, action: Selector(action), keyEquivalent: key))
+      }
+    }
+    editItem.submenu = edit
+    main.addItem(editItem)
+    NSApp.mainMenu = main
+  }
+
+  @objc private func pasteIntoHub(_ sender: Any?) {
+    if let editor = NSApp.keyWindow?.firstResponder as? NSTextView, editor.isEditable {
+      editor.paste(sender)
+    } else if !model.pasteText() {
+      NSApp.sendAction(#selector(NSText.paste(_:)), to: nil, from: sender)
+    }
+  }
+
   func applicationWillTerminate(_ notification: Notification) {
+    model.saveText()
     if let globalMouseMonitor { NSEvent.removeMonitor(globalMouseMonitor) }
     if let localMouseMonitor { NSEvent.removeMonitor(localMouseMonitor) }
   }
@@ -171,7 +221,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       return
     }
     let inside = islandFrame.contains(NSEvent.mouseLocation)
-    if panel.ignoresMouseEvents != !inside { panel.ignoresMouseEvents = !inside }
+    let acceptsPointer = inside || (externalFileDrag && NSEvent.pressedMouseButtons & 1 != 0)
+    if panel.ignoresMouseEvents != !acceptsPointer { panel.ignoresMouseEvents = !acceptsPointer }
     let notchWidth = model.compactSize.width
     let notchTrigger = NSRect(
       x: panel.frame.midX - notchWidth / 2,
@@ -185,6 +236,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func handleMouse(_ event: NSEvent) {
+    if event.type == .leftMouseDragged, !model.draggingFile {
+      externalFileDrag = NSPasteboard(name: .drag).canReadObject(
+        forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true])
+    } else if event.type == .leftMouseUp { externalFileDrag = false }
     if handleSwipe(event) { return }
     updatePointer()
     if event.type == .leftMouseDown || event.type == .rightMouseDown {

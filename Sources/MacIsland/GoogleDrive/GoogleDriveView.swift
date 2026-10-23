@@ -39,7 +39,7 @@ struct GoogleDriveView: View {
             .title3.weight(.semibold))
           Text(
             drive.configured
-              ? "Browse Drive files, add downloads to File Tray, and upload local files."
+              ? "Browse Drive files, add downloads to Hub, and upload local files."
               : "Import a Desktop app OAuth client from Google Cloud. Google account access is stored in this Mac's Keychain."
           )
           .multilineTextAlignment(.center).foregroundStyle(.secondary).frame(maxWidth: 440)
@@ -81,7 +81,7 @@ struct GoogleDriveView: View {
               if file.folder {
                 Button("Open") { drive.open(file) }.disabled(drive.busy)
               } else {
-                Button(file.export.map { "Add \($0.suffix.uppercased()) to Tray" } ?? "Add to Tray")
+                Button(file.export.map { "Add \($0.suffix.uppercased()) to Hub" } ?? "Add to Hub")
                 { drive.download(file) }
                 .disabled(drive.busy || file.capabilities?.canDownload == false)
               }
@@ -100,7 +100,7 @@ struct GoogleDriveView: View {
             Text("Drop files here").font(.caption).foregroundStyle(.secondary)
           }
           if model.files.isEmpty {
-            Text("Drag files here from Finder, or add files to File Tray first.").font(.caption)
+            Text("Drag files here from Finder, or add files to Hub first.").font(.caption)
               .foregroundStyle(.secondary)
           } else {
             ScrollView(.horizontal) {

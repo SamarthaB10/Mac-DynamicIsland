@@ -1,10 +1,8 @@
 import AppKit
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct IslandView: View {
   @ObservedObject var model: IslandModel
-  @State private var dropTarget = false
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Namespace private var selection
 
@@ -43,7 +41,7 @@ struct IslandView: View {
       .clipShape(RoundedRectangle(cornerRadius: model.expanded ? 40 : 18, style: .continuous))
       .overlay {
         RoundedRectangle(cornerRadius: model.expanded ? 40 : 18, style: .continuous)
-          .strokeBorder(.white.opacity(dropTarget ? 0.7 : 0.15), lineWidth: dropTarget ? 2 : 0.5)
+          .strokeBorder(.white.opacity(model.dropTargeted ? 0.7 : 0.15), lineWidth: model.dropTargeted ? 2 : 0.5)
           .allowsHitTesting(false)
       }
       .offset(x: model.visible ? 0 : 80)
@@ -53,14 +51,12 @@ struct IslandView: View {
       .animation(motion, value: model.expanded)
       .animation(motion, value: model.tab)
       .animation(motion, value: model.connectionNotice)
-      .onDrop(of: [UTType.fileURL], isTargeted: $dropTarget, perform: acceptDrop)
       .padding(.top, IslandModel.canvasInset)
     }
     .frame(width: model.canvasSize.width, height: model.canvasSize.height, alignment: .top)
     .foregroundStyle(.white)
     .tint(.white)
     .font(.system(size: 12))
-    .onChange(of: dropTarget) { _, targeted in model.setDropTarget(targeted) }
     .onExitCommand { model.collapse(force: true) }
   }
 
@@ -71,7 +67,7 @@ struct IslandView: View {
           switch model.tab {
           case .music:
             MusicView(media: model.media, showDevices: { withAnimation { model.tab = .devices } })
-          case .files: FileTrayView(model: model)
+          case .files: HubView(model: model)
           case .devices: DevicesView(audio: model.audio)
           }
         }.id(model.tab).transition(.opacity)
@@ -80,6 +76,7 @@ struct IslandView: View {
         ForEach(IslandTab.allCases, id: \.self) { tab in
           Button {
             withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) { model.tab = tab }
+            if tab == .files { model.openForKeyboard?() }
             if tab == .devices {
               model.audio.refresh()
               model.weather.refreshIfNeeded()
@@ -117,16 +114,6 @@ struct IslandView: View {
     .padding(16)
   }
 
-  private func acceptDrop(_ providers: [NSItemProvider]) -> Bool {
-    guard !model.draggingFile else { return false }
-    for provider in providers {
-      provider.loadDataRepresentation(forTypeIdentifier: UTType.fileURL.identifier) { data, _ in
-        guard let data, let url = URL(dataRepresentation: data, relativeTo: nil) else { return }
-        Task { @MainActor in model.addFiles([url]) }
-      }
-    }
-    return !providers.isEmpty
-  }
 }
 
 struct CompactIslandView: View {
