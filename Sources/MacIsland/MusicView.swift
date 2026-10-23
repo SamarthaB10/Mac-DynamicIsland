@@ -61,7 +61,8 @@ struct MusicView: View {
         Button { media.openPlayer() } label: {
           SpotifyMark().frame(width: 14, height: 14).frame(width: 28, height: 20)
         }.buttonStyle(.plain).accessibilityLabel("Open Spotify").help("Open Spotify")
-      } else if let error = media.error {
+      }
+      if let error = media.error, error != "Open Spotify first." {
         Button {
           media.command()
         } label: {
