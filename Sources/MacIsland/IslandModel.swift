@@ -23,6 +23,7 @@ final class IslandModel: ObservableObject {
   @Published var textInput = ""
   @Published var textTitle = ""
   @Published private(set) var onlineFiles: Set<URL> = []
+  @Published private(set) var pendingOnlineDrags: Set<URL> = []
   private var outgoingPromises: [URL: HubFilePromise] = [:]
   private var acceptedOnlineDrags: Set<URL> = []
   private var deliveredOnlineDrags: Set<URL> = []
@@ -155,6 +156,7 @@ final class IslandModel: ObservableObject {
         acceptedOnlineDrags.insert(url)
         finishOnlineDrag(url)
       } else {
+        pendingOnlineDrags.remove(url)
         outgoingPromises.removeValue(forKey: url)
         acceptedOnlineDrags.remove(url)
         deliveredOnlineDrags.remove(url)
@@ -214,6 +216,10 @@ final class IslandModel: ObservableObject {
   }
 
   func removeFile(_ url: URL) {
+    guard !processingFiles, !pendingOnlineDrags.contains(url) else {
+      fileError = "Wait for the current file operation to finish."
+      return
+    }
     if onlineFiles.contains(url) {
       do { try FileManager.default.removeItem(at: url) }
       catch {
@@ -274,11 +280,13 @@ final class IslandModel: ObservableObject {
 
   func dragWriter(for url: URL) -> NSPasteboardWriting {
     guard onlineFiles.contains(url) else { return url as NSURL }
+    pendingOnlineDrags.insert(url)
     acceptedOnlineDrags.remove(url)
     deliveredOnlineDrags.remove(url)
     let promise = HubFilePromise(url: url) { [weak self] error in
       guard let self else { return }
       if let error {
+        self.pendingOnlineDrags.remove(url)
         self.fileError = "The online file could not be delivered. \(error.localizedDescription)"
         self.outgoingPromises.removeValue(forKey: url)
         self.acceptedOnlineDrags.remove(url)
@@ -293,6 +301,7 @@ final class IslandModel: ObservableObject {
 
   private func finishOnlineDrag(_ url: URL) {
     guard acceptedOnlineDrags.contains(url), deliveredOnlineDrags.contains(url) else { return }
+    pendingOnlineDrags.remove(url)
     removeFile(url)
     outgoingPromises.removeValue(forKey: url)
     acceptedOnlineDrags.remove(url)
@@ -301,7 +310,7 @@ final class IslandModel: ObservableObject {
 
   func saveOnlineFilesToDownloads() {
     let sources = files.filter { selectedFiles.contains($0) && onlineFiles.contains($0) }
-    guard !sources.isEmpty, !isChoosingFiles else { return }
+    guard !sources.isEmpty, !isChoosingFiles, pendingOnlineDrags.isEmpty else { return }
     isChoosingFiles = true
     processingFiles = true
     Task {
@@ -347,7 +356,7 @@ final class IslandModel: ObservableObject {
 
   func performFileAction(_ action: FileAction) {
     let sources = files.filter { selectedFiles.contains($0) }
-    guard !sources.isEmpty, !processingFiles, !isChoosingFiles else { return }
+    guard !sources.isEmpty, !processingFiles, !isChoosingFiles, pendingOnlineDrags.isEmpty else { return }
     switch action {
     case .image, .imagePDF, .compressImage:
       let unsupported = FileActions.unsupportedImages(sources)

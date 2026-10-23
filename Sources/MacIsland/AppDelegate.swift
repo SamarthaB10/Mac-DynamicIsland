@@ -6,31 +6,42 @@ final class IslandPanel: NSPanel {
   var closeIsland: (() -> Void)?
   override var canBecomeKey: Bool { true }
   override var canBecomeMain: Bool { true }
+  override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect { frameRect }
   override func cancelOperation(_ sender: Any?) { closeIsland?() }
 }
 
 final class IslandHostingView<Content: View>: NSHostingView<Content> {
   var dragState: ((Bool) -> Void)?
   var receiveDrop: ((NSPasteboard) -> Bool)?
+  private var receivingExternalDrop = false
 
   override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
-    guard !(sender.draggingSource is TrayFileIconView),
-      HubDropReceiver.canRead(sender.draggingPasteboard)
-    else { return [] }
+    guard !(sender.draggingSource is TrayFileIconView) else { return [] }
+    receivingExternalDrop = HubDropReceiver.canRead(sender.draggingPasteboard)
+    guard receivingExternalDrop else { return super.draggingEntered(sender) }
     dragState?(true)
     return .copy
   }
 
   override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
-    sender.draggingSource is TrayFileIconView || !HubDropReceiver.canRead(sender.draggingPasteboard) ? [] : .copy
+    if sender.draggingSource is TrayFileIconView { return [] }
+    return receivingExternalDrop ? .copy : super.draggingUpdated(sender)
   }
 
-  override func draggingExited(_ sender: NSDraggingInfo?) { dragState?(false) }
-  override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool { true }
+  override func draggingExited(_ sender: NSDraggingInfo?) {
+    if receivingExternalDrop { dragState?(false) }
+    else { super.draggingExited(sender) }
+    receivingExternalDrop = false
+  }
+  override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+    receivingExternalDrop || super.prepareForDragOperation(sender)
+  }
 
   override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
     guard !(sender.draggingSource is TrayFileIconView) else { return false }
+    guard receivingExternalDrop else { return super.performDragOperation(sender) }
     dragState?(false)
+    receivingExternalDrop = false
     return receiveDrop?(sender.draggingPasteboard) ?? false
   }
 }
@@ -338,6 +349,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     model.expand()
     panel.makeKeyAndOrderFront(nil)
     panel.makeMain()
+    layout()
     NSApp.activate(ignoringOtherApps: true)
   }
   @objc private func toggleVisibility() {

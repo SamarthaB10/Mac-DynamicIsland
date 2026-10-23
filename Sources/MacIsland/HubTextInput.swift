@@ -84,11 +84,13 @@ private final class PasteTextView: NSTextView {
   }
 
   override func paste(_ sender: Any?) {
+    guard let text = NSPasteboard.general.string(forType: .string), !text.isEmpty else { return }
     super.pasteAsPlainText(sender)
     didPaste?()
   }
 
   override func pasteAsPlainText(_ sender: Any?) {
+    guard let text = NSPasteboard.general.string(forType: .string), !text.isEmpty else { return }
     super.pasteAsPlainText(sender)
     didPaste?()
   }

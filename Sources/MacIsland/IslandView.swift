@@ -49,7 +49,6 @@ struct IslandView: View {
       .animation(motion, value: model.visible)
       .shadow(color: .black.opacity(0.42), radius: 12, y: 8)
       .animation(motion, value: model.expanded)
-      .animation(motion, value: model.tab)
       .animation(motion, value: model.connectionNotice)
       .padding(.top, IslandModel.canvasInset)
     }
@@ -66,19 +65,18 @@ struct IslandView: View {
         Group {
           switch model.tab {
           case .music:
-            MusicView(media: model.media, showDevices: { withAnimation { model.tab = .devices } })
+            MusicView(media: model.media, showDevices: { model.tab = .devices })
           case .files: HubView(model: model)
           case .devices: DevicesView(audio: model.audio)
           }
-        }.id(model.tab).transition(.opacity)
+        }
       }.frame(maxWidth: .infinity, maxHeight: .infinity)
       HStack(spacing: 3) {
         ForEach(IslandTab.allCases, id: \.self) { tab in
           Button {
-            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) { model.tab = tab }
+            model.tab = tab
             if tab == .files { model.openForKeyboard?() }
             if tab == .devices {
-              model.audio.refresh()
               model.weather.refreshIfNeeded()
             }
           } label: {

@@ -1,4 +1,13 @@
 import SwiftUI
+import CoreTransferable
+import UniformTypeIdentifiers
+
+private struct SavedItemDrag: Codable, Transferable {
+  let id: UUID
+  static var transferRepresentation: some TransferRepresentation {
+    CodableRepresentation(contentType: UTType(exportedAs: "local.macisland.saved-item"))
+  }
+}
 
 enum HubSection: String, CaseIterable {
   case files = "Files"
@@ -71,8 +80,8 @@ private struct SavedTextView: View {
           LazyVStack(alignment: .leading, spacing: 10) {
             ForEach(model.savedItems) { item in
               SavedTextRow(model: model, item: item)
-                .dropDestination(for: String.self) { values, _ in
-                  guard let value = values.first, let id = UUID(uuidString: value) else { return false }
+                .dropDestination(for: SavedItemDrag.self) { values, _ in
+                  guard let id = values.first?.id else { return false }
                   model.moveText(id, before: item.id)
                   return true
                 }
@@ -80,8 +89,8 @@ private struct SavedTextView: View {
             }
             Color.clear.frame(height: 16).contentShape(Rectangle())
               .help("Drop here to move saved text to the end")
-              .dropDestination(for: String.self) { values, _ in
-                guard let value = values.first, let id = UUID(uuidString: value) else { return false }
+              .dropDestination(for: SavedItemDrag.self) { values, _ in
+                guard let id = values.first?.id else { return false }
                 model.moveText(id, before: nil)
                 return true
               }
@@ -98,9 +107,18 @@ private struct SavedTextRow: View {
   let item: SavedItem
   @State private var editingTitle = false
   @State private var title = ""
+  @State private var expanded = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
+      Image(systemName: "line.3.horizontal").frame(maxWidth: .infinity).frame(height: 20)
+        .foregroundStyle(.white.opacity(0.6)).contentShape(Rectangle())
+        .draggable(SavedItemDrag(id: item.id))
+        .accessibilityLabel("Reorder saved text").help("Drag to reorder")
+        .contextMenu {
+          Button("Move to top") { model.moveText(item.id, before: model.savedItems.first?.id) }
+          Button("Move to end") { model.moveText(item.id, before: nil) }
+        }
       HStack {
         if editingTitle {
           TextField("Title", text: $title).textFieldStyle(.plain).onSubmit(saveTitle)
@@ -109,23 +127,22 @@ private struct SavedTextRow: View {
             .buttonStyle(.plain).accessibilityLabel("Save title").help("Save title")
         } else {
           if let title = item.title { Text(title).font(.system(size: 12, weight: .semibold)) }
-          Spacer()
-          Image(systemName: "line.3.horizontal").frame(width: 24, height: 20)
-            .foregroundStyle(.white.opacity(0.6)).draggable(item.id.uuidString)
-            .accessibilityLabel("Reorder saved text").help("Drag to reorder")
-            .contextMenu {
-              Button("Move to top") { model.moveText(item.id, before: model.savedItems.first?.id) }
-              Button("Move to end") { model.moveText(item.id, before: nil) }
-            }
+          Spacer(minLength: 0)
         }
       }
       Text(item.text).font(.system(size: 12)).textSelection(.enabled)
+        .lineLimit(expanded ? nil : 5)
         .frame(maxWidth: .infinity, alignment: .leading)
       HStack(spacing: 12) {
         Button { model.copyText(item) } label: {
           Image(systemName: "doc.on.doc").frame(width: 24, height: 24)
         }.accessibilityLabel("Copy saved text").help("Copy")
         if item.webURL != nil { Button("Open") { model.openText(item) } }
+        if item.text.count > 240 || item.text.filter({ $0 == "\n" }).count >= 5 {
+          Button { expanded.toggle() } label: {
+            Image(systemName: expanded ? "chevron.up" : "chevron.down").frame(width: 24, height: 24)
+          }.accessibilityLabel(expanded ? "Collapse saved text" : "Expand saved text")
+        }
         Button {
           title = item.title ?? ""
           editingTitle = true
@@ -179,12 +196,14 @@ private struct HubFilesView: View {
                   .accessibilityLabel("Select \(url.lastPathComponent)")
                 TrayFileIcon(
                   url: url, reveal: { model.reveal(url) }, began: { model.beginFileDrag() },
-                  ended: { model.endFileDrag(url, accepted: $0) }, writer: { model.dragWriter(for: url) }
+                  ended: { model.endFileDrag(url, accepted: $0) }, writer: { model.dragWriter(for: url) },
+                  enabled: !model.isChoosingFiles && !model.processingFiles && !model.pendingOnlineDrags.contains(url)
                 ).saturation(0).frame(width: 36, height: 36)
                   .help("Drag out, or click to show in Finder")
                 Text(url.lastPathComponent).font(.system(size: 10)).lineLimit(1).truncationMode(.middle)
                   .help(url.lastPathComponent)
                 Button("Remove") { model.removeFile(url) }
+                  .disabled(model.processingFiles || model.pendingOnlineDrags.contains(url))
                   .buttonStyle(.plain).font(.system(size: 10)).foregroundStyle(.white.opacity(0.7))
                   .accessibilityLabel("Remove \(url.lastPathComponent) from Hub")
               }.frame(width: 84)
@@ -215,7 +234,7 @@ private struct HubFilesView: View {
               actionButton("Save to Downloads", symbol: "arrow.down.to.line") { model.saveOnlineFilesToDownloads() }
             }
           }.padding(.vertical, 2)
-        }.frame(height: 70).disabled(model.selectedFiles.isEmpty || model.isChoosingFiles)
+        }.frame(height: 70).disabled(model.selectedFiles.isEmpty || model.isChoosingFiles || !model.pendingOnlineDrags.isEmpty)
       }
       HStack {
         Button { model.openGoogleDrive?() } label: {
@@ -231,6 +250,7 @@ private struct HubFilesView: View {
     }
     .sheet(item: $imageAction, onDismiss: {
       model.configuringImages = false
+      model.openForKeyboard?()
       if let action = pendingImageAction {
         pendingImageAction = nil
         model.performFileAction(action)
