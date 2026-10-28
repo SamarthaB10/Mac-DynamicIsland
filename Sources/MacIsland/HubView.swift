@@ -176,13 +176,12 @@ private struct HubFilesView: View {
                   .labelsHidden().toggleStyle(.checkbox)
                   .accessibilityLabel("Select \(url.lastPathComponent)")
                 TrayFileIcon(
-                  url: url, reveal: { model.reveal(url) }, began: { model.beginFileDrag() },
-                  ended: { model.endFileDrag(url, accepted: $0) }, writer: { model.dragWriter(for: url) },
+                  url: url, preview: { model.previewFile(url) }, began: { model.beginFileDrag() },
+                  ended: { model.endFileDrag(url, result: $0) }, writer: { model.dragWriter(for: url) },
+                  islandFrame: { model.fileDragFrame },
                   enabled: !model.isChoosingFiles && !model.processingFiles && !model.pendingOnlineDrags.contains(url) && !model.uploadingFiles.contains(url)
-                ).saturation(0).frame(width: 36, height: 36)
-                  .help("Drag out, or click to show in Finder")
-                Text(url.lastPathComponent).font(.system(size: 10)).lineLimit(1).truncationMode(.middle)
-                  .help(url.lastPathComponent)
+                ).saturation(0).frame(width: 84, height: 55)
+                  .help("Click to preview, or drag out to remove from the Hub")
                 Button("Remove") { model.removeFile(url) }
                   .disabled(model.processingFiles || model.pendingOnlineDrags.contains(url) || model.uploadingFiles.contains(url))
                   .buttonStyle(.plain).font(.system(size: 10)).foregroundStyle(.white.opacity(0.7))
