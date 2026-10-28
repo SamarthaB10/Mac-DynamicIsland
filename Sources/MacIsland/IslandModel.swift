@@ -16,6 +16,7 @@ final class IslandModel: ObservableObject {
   @Published var notchHeight: CGFloat = 0
   @Published private(set) var pinned = false
   @Published var tab = IslandTab.music
+  @Published var musicArtworkFocused = false
   @Published var files: [URL] = []
   @Published var hubView = HubSection.files
   @Published var selectedFiles: Set<URL> = []
@@ -61,6 +62,9 @@ final class IslandModel: ObservableObject {
   static let hubSize = CGSize(width: 480, height: 360)
   var contentSize: CGSize {
     if tab == .files { return Self.hubSize }
+    if tab == .music && musicArtworkFocused {
+      return CGSize(width: Self.expandedSize.width, height: Self.hubSize.height)
+    }
     return CGSize(
       width: Self.expandedSize.width,
       height: tab == .devices

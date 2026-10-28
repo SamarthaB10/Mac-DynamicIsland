@@ -154,7 +154,7 @@ final class MediaController: ObservableObject {
           source, 0,
           [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceThumbnailMaxPixelSize: 160,
+            kCGImageSourceThumbnailMaxPixelSize: 512,
             kCGImageSourceCreateThumbnailWithTransform: true,
           ] as CFDictionary)
       else { return }
