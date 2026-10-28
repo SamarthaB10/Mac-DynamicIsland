@@ -17,25 +17,15 @@ final class IslandModel: ObservableObject {
   @Published private(set) var pinned = false
   @Published var tab = IslandTab.music
   @Published var musicArtworkFocused = false
-  @Published var files: [URL] = []
+  let hubFiles = HubFileStore()
   @Published var hubView = HubSection.files
-  @Published var selectedFiles: Set<URL> = []
   @Published private(set) var savedItems: [SavedItem] = []
   @Published var textInput = ""
   @Published var textTitle = ""
-  @Published private(set) var onlineFiles: Set<URL> = []
-  @Published private(set) var pendingOnlineDrags: Set<URL> = []
-  @Published private(set) var uploadingFiles: Set<URL> = []
-  private var outgoingPromises: [URL: HubFilePromise] = [:]
-  private var acceptedOnlineDrags: Set<URL> = []
-  private var deliveredOnlineDrags: Set<URL> = []
   @Published var textError: String?
   @Published var actionReport: String?
-  @Published private(set) var processingFiles = false
   private let textStore = SavedTextStore()
-  private let filePreview = HubFilePreview()
   private var textStoreLoaded = false
-  @Published var fileError: String?
   @Published private(set) var dropTargeted = false
   @Published private(set) var isChoosingFiles = false {
     didSet { updateFileInteraction() }
@@ -93,6 +83,12 @@ final class IslandModel: ObservableObject {
   }
 
   init() {
+    hubFiles.filesAdded = { [weak self] in
+      self?.tab = .files
+      self?.hubView = .files
+      self?.expand()
+    }
+    hubFiles.dropFailed = { [weak self] in self?.actionReport = $0 }
     do {
       savedItems = try textStore.load()
       textStoreLoaded = true
@@ -169,18 +165,7 @@ final class IslandModel: ObservableObject {
   }
 
   func endFileDrag(_ url: URL, result: HubFileDragResult) {
-    if onlineFiles.contains(url) {
-      if result == .delivered {
-        acceptedOnlineDrags.insert(url)
-        finishOnlineDrag(url)
-      } else {
-        pendingOnlineDrags.remove(url)
-        outgoingPromises.removeValue(forKey: url)
-        acceptedOnlineDrags.remove(url)
-        deliveredOnlineDrags.remove(url)
-        if result == .discarded { removeFile(url) }
-      }
-    } else if result != .kept { removeFile(url) }
+    hubFiles.endDrag(url, result: result)
     draggingFile = false
     updateFileInteraction()
   }
@@ -188,22 +173,6 @@ final class IslandModel: ObservableObject {
     dropTargeted = targeted
     if targeted { tab = .files; hubView = .files }
     send(targeted ? 7 : 8)
-  }
-
-  func addFiles(_ urls: [URL]) {
-    var missing = false
-    for url in urls where url.isFileURL {
-      let canonical = url.standardizedFileURL
-      guard FileManager.default.fileExists(atPath: canonical.path) else {
-        missing = true
-        continue
-      }
-      if !files.contains(canonical) { files.append(canonical) }
-    }
-    fileError = missing ? "A file is no longer available." : nil
-    tab = .files
-    hubView = .files
-    expand()
   }
 
   func chooseFiles() {
@@ -216,7 +185,7 @@ final class IslandModel: ObservableObject {
     presentPicker(picker) { [weak self] result in
       guard let self else { return }
       self.isChoosingFiles = false
-      if result == .OK { self.addFiles(picker.urls) }
+      if result == .OK { self.hubFiles.add(picker.urls) }
       self.openForKeyboard?()
     }
   }
@@ -224,47 +193,6 @@ final class IslandModel: ObservableObject {
   private func presentPicker(_ picker: NSOpenPanel, completion: @escaping (NSApplication.ModalResponse) -> Void) {
     if let islandWindow { picker.beginSheetModal(for: islandWindow, completionHandler: completion) }
     else { picker.begin(completionHandler: completion) }
-  }
-
-  func previewFile(_ url: URL) {
-    guard FileManager.default.fileExists(atPath: url.path) else {
-      fileError = "This file was moved or deleted. Remove it from the Hub."
-      return
-    }
-    filePreview.show(url)
-  }
-
-  func retainUploadFiles(_ urls: [URL]) -> Bool {
-    guard pendingOnlineDrags.isDisjoint(with: urls) else { return false }
-    uploadingFiles.formUnion(urls)
-    return true
-  }
-
-  func releaseUploadFiles(_ urls: [URL]) {
-    uploadingFiles.subtract(urls)
-  }
-
-  func removeFile(_ url: URL) {
-    guard !processingFiles, !pendingOnlineDrags.contains(url), !uploadingFiles.contains(url) else {
-      fileError = "Wait for the current file operation to finish."
-      return
-    }
-    if onlineFiles.contains(url) {
-      do { try FileManager.default.removeItem(at: url) }
-      catch {
-        let failure = error as NSError
-        // A browser or macOS can remove a temporary file before its Hub entry.
-        guard failure.domain == NSCocoaErrorDomain && failure.code == NSFileNoSuchFileError else {
-          fileError = "The temporary online file could not be removed. \(error.localizedDescription)"
-          return
-        }
-      }
-      onlineFiles.remove(url)
-    }
-    filePreview.close(url)
-    files.removeAll { $0 == url }
-    selectedFiles.remove(url)
-    fileError = nil
   }
 
   func saveText() {
@@ -308,46 +236,10 @@ final class IslandModel: ObservableObject {
     _ = persistText(items)
   }
 
-  func addOnlineFiles(_ urls: [URL]) {
-    onlineFiles.formUnion(urls.map(\.standardizedFileURL))
-    addFiles(urls)
-  }
-
-  func dragWriter(for url: URL) -> NSPasteboardWriting {
-    guard onlineFiles.contains(url) else { return url as NSURL }
-    pendingOnlineDrags.insert(url)
-    acceptedOnlineDrags.remove(url)
-    deliveredOnlineDrags.remove(url)
-    let promise = HubFilePromise(url: url) { [weak self] error in
-      guard let self else { return }
-      if let error {
-        self.pendingOnlineDrags.remove(url)
-        self.fileError = "The online file could not be delivered. \(error.localizedDescription)"
-        self.outgoingPromises.removeValue(forKey: url)
-        self.acceptedOnlineDrags.remove(url)
-      } else {
-        self.deliveredOnlineDrags.insert(url)
-        self.finishOnlineDrag(url)
-      }
-    }
-    outgoingPromises[url] = promise
-    return promise.provider
-  }
-
-  private func finishOnlineDrag(_ url: URL) {
-    guard acceptedOnlineDrags.contains(url), deliveredOnlineDrags.contains(url) else { return }
-    pendingOnlineDrags.remove(url)
-    removeFile(url)
-    outgoingPromises.removeValue(forKey: url)
-    acceptedOnlineDrags.remove(url)
-    deliveredOnlineDrags.remove(url)
-  }
-
   func saveOnlineFilesToDownloads() {
-    let sources = files.filter { selectedFiles.contains($0) && onlineFiles.contains($0) }
-    guard !sources.isEmpty, !isChoosingFiles, pendingOnlineDrags.isEmpty else { return }
+    let sources = hubFiles.selectedOnlineFiles
+    guard !sources.isEmpty, !isChoosingFiles, hubFiles.beginProcessing() else { return }
     isChoosingFiles = true
-    processingFiles = true
     Task {
       let result = await Task.detached(priority: .userInitiated) {
         var result = FileActionResult()
@@ -358,8 +250,8 @@ final class IslandModel: ObservableObject {
         }
         return result
       }.value
-      self.addFiles(result.files)
-      self.processingFiles = false
+      self.hubFiles.add(result.files)
+      self.hubFiles.finishProcessing()
       self.isChoosingFiles = false
       self.actionReport = "Saved \(result.files.count) file(s) to Downloads. These copies stay on this Mac."
         + (result.failures.isEmpty ? "" : "\nFailed:\n" + result.failures.joined(separator: "\n"))
@@ -390,8 +282,8 @@ final class IslandModel: ObservableObject {
   }
 
   func performFileAction(_ action: FileAction) {
-    let sources = files.filter { selectedFiles.contains($0) }
-    guard !sources.isEmpty, !processingFiles, !isChoosingFiles, pendingOnlineDrags.isEmpty else { return }
+    let sources = hubFiles.selected
+    guard !sources.isEmpty, hubFiles.canProcess, !isChoosingFiles else { return }
     switch action {
     case .image, .imagePDF, .compressImage:
       let unsupported = FileActions.unsupportedImages(sources)
@@ -429,15 +321,18 @@ final class IslandModel: ObservableObject {
         self.openForKeyboard?()
         return
       }
-      self.processingFiles = true
-      self.fileError = nil
+      guard self.hubFiles.beginProcessing() else {
+        self.isChoosingFiles = false
+        self.openForKeyboard?()
+        return
+      }
       Task {
         let result = await Task.detached(priority: .userInitiated) {
           FileActions.run(action, sources: sources, folder: folder)
         }.value
-        self.addFiles(result.files)
-        self.selectedFiles.subtract(sources)
-        self.processingFiles = false
+        self.hubFiles.add(result.files)
+        self.hubFiles.selectedFiles.subtract(sources)
+        self.hubFiles.finishProcessing()
         self.isChoosingFiles = false
         self.openForKeyboard?()
         self.actionReport = "Added \(result.files.count) result file(s) to the Hub."

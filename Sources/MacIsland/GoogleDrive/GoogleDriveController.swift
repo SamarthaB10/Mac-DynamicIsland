@@ -41,8 +41,7 @@ final class GoogleDriveController: ObservableObject {
   @Published private(set) var error: String?
   @Published private(set) var nextPage: String?
   var receivedFile: ((URL) -> Void)?
-  var retainUploadFiles: (([URL]) -> Bool)?
-  var releaseUploadFiles: (([URL]) -> Void)?
+  private let hubFiles: HubFileStore
   private var configuration: GoogleClientConfiguration?
   private let oauth = GoogleOAuth()
   private let session: URLSession = {
@@ -52,7 +51,8 @@ final class GoogleDriveController: ObservableObject {
     return URLSession(configuration: configuration)
   }()
 
-  init() {
+  init(hubFiles: HubFileStore) {
+    self.hubFiles = hubFiles
     do {
       configuration = try DriveKeychain.read("configuration", as: GoogleClientConfiguration.self)
       accounts = try DriveKeychain.read("accounts", as: [DriveAccount].self) ?? []
@@ -226,53 +226,51 @@ final class GoogleDriveController: ObservableObject {
 
   func upload(_ urls: [URL]) {
     guard !busy, selectedAccount != nil, !urls.isEmpty else { return }
-    guard retainUploadFiles?(urls) ?? true else {
-      error = "Wait for the file drag to finish, then upload again."
-      return
-    }
     let folder = folders.last!.id
-    run("Uploading to Google Drive…") {
-      defer { self.releaseUploadFiles?(urls) }
-      let token = try await self.token()
-      for url in urls {
-        let values = try url.resourceValues(forKeys: [
-          .isRegularFileKey, .fileSizeKey, .contentTypeKey,
-        ])
-        guard values.isRegularFile == true else {
-          throw DriveFailure.message("Upload files individually. Folder upload is not supported.")
+    do {
+      let upload = try hubFiles.uploadFiles(urls) {
+        let token = try await self.token()
+        for url in urls {
+          let values = try url.resourceValues(forKeys: [
+            .isRegularFileKey, .fileSizeKey, .contentTypeKey,
+          ])
+          guard values.isRegularFile == true else {
+            throw DriveFailure.message("Upload files individually. Folder upload is not supported.")
+          }
+          var start = URLRequest(
+            url: URL(
+              string:
+                "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true"
+            )!)
+          start.httpMethod = "POST"
+          start.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+          start.setValue("application/json; charset=UTF-8", forHTTPHeaderField: "Content-Type")
+          start.setValue(
+            values.contentType?.preferredMIMEType ?? "application/octet-stream",
+            forHTTPHeaderField: "X-Upload-Content-Type")
+          start.setValue(String(values.fileSize ?? 0), forHTTPHeaderField: "X-Upload-Content-Length")
+          start.httpBody = try JSONSerialization.data(withJSONObject: [
+            "name": url.lastPathComponent, "parents": [folder],
+          ])
+          let (_, response) = try await self.session.data(for: start)
+          try self.check(response)
+          guard let address = (response as? HTTPURLResponse)?.value(forHTTPHeaderField: "Location"),
+            let sessionURL = URL(string: address), sessionURL.scheme == "https",
+            sessionURL.host?.hasSuffix(".googleapis.com") == true
+          else { throw DriveFailure.message("Google did not return a valid upload session.") }
+          var upload = URLRequest(url: sessionURL)
+          upload.httpMethod = "PUT"
+          upload.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+          upload.setValue(
+            values.contentType?.preferredMIMEType ?? "application/octet-stream",
+            forHTTPHeaderField: "Content-Type")
+          let (_, uploadResponse) = try await self.session.upload(for: upload, fromFile: url)
+          try self.check(uploadResponse)
+          self.status = "Uploaded \(url.lastPathComponent)."
         }
-        var start = URLRequest(
-          url: URL(
-            string:
-              "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true"
-          )!)
-        start.httpMethod = "POST"
-        start.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        start.setValue("application/json; charset=UTF-8", forHTTPHeaderField: "Content-Type")
-        start.setValue(
-          values.contentType?.preferredMIMEType ?? "application/octet-stream",
-          forHTTPHeaderField: "X-Upload-Content-Type")
-        start.setValue(String(values.fileSize ?? 0), forHTTPHeaderField: "X-Upload-Content-Length")
-        start.httpBody = try JSONSerialization.data(withJSONObject: [
-          "name": url.lastPathComponent, "parents": [folder],
-        ])
-        let (_, response) = try await self.session.data(for: start)
-        try self.check(response)
-        guard let address = (response as? HTTPURLResponse)?.value(forHTTPHeaderField: "Location"),
-          let sessionURL = URL(string: address), sessionURL.scheme == "https",
-          sessionURL.host?.hasSuffix(".googleapis.com") == true
-        else { throw DriveFailure.message("Google did not return a valid upload session.") }
-        var upload = URLRequest(url: sessionURL)
-        upload.httpMethod = "PUT"
-        upload.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        upload.setValue(
-          values.contentType?.preferredMIMEType ?? "application/octet-stream",
-          forHTTPHeaderField: "Content-Type")
-        let (_, uploadResponse) = try await self.session.upload(for: upload, fromFile: url)
-        try self.check(uploadResponse)
-        self.status = "Uploaded \(url.lastPathComponent)."
       }
-    }
+      run("Uploading to Google Drive…") { try await upload.value }
+    } catch { self.error = error.localizedDescription }
   }
 
   private func run(_ message: String, operation: @escaping () async throws -> Void) {
