@@ -50,6 +50,7 @@ struct IslandView: View {
       .shadow(color: .black.opacity(0.42), radius: 12, y: 8)
       .animation(motion, value: model.expanded)
       .animation(motion, value: model.musicArtworkFocused)
+      .animation(motion, value: model.tab)
       .animation(motion, value: model.connectionNotice)
       .padding(.top, IslandModel.canvasInset)
     }
@@ -82,6 +83,8 @@ struct IslandView: View {
           case .devices: DevicesView(audio: model.audio)
           }
         }
+        .id(model.tab)
+        .transition(reduceMotion ? .identity : .opacity)
       }.frame(maxWidth: .infinity, maxHeight: .infinity)
       HStack(spacing: 3) {
         if model.tab != .music || !model.musicArtworkFocused {
