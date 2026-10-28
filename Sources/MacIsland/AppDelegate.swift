@@ -13,19 +13,28 @@ final class IslandPanel: NSPanel {
 final class IslandHostingView<Content: View>: NSHostingView<Content> {
   var dragState: ((Bool) -> Void)?
   var receiveDrop: ((NSPasteboard) -> Bool)?
+  var acceptsDropAt: ((NSPoint) -> Bool)?
   private var receivingExternalDrop = false
 
-  override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+  private func updateDropTarget(_ sender: NSDraggingInfo) -> NSDragOperation {
     guard !(sender.draggingSource is TrayFileIconView) else { return [] }
-    receivingExternalDrop = HubDropReceiver.canRead(sender.draggingPasteboard)
-    guard receivingExternalDrop else { return super.draggingEntered(sender) }
-    dragState?(true)
-    return .copy
+    guard HubDropReceiver.canRead(sender.draggingPasteboard) else { return [] }
+    let targeted = acceptsDropAt?(sender.draggingLocation) ?? false
+    if targeted != receivingExternalDrop {
+      receivingExternalDrop = targeted
+      dragState?(targeted)
+    }
+    return targeted ? .copy : []
+  }
+
+  override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+    guard HubDropReceiver.canRead(sender.draggingPasteboard) else { return super.draggingEntered(sender) }
+    return updateDropTarget(sender)
   }
 
   override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
-    if sender.draggingSource is TrayFileIconView { return [] }
-    return receivingExternalDrop ? .copy : super.draggingUpdated(sender)
+    guard HubDropReceiver.canRead(sender.draggingPasteboard) else { return super.draggingUpdated(sender) }
+    return updateDropTarget(sender)
   }
 
   override func draggingExited(_ sender: NSDraggingInfo?) {
@@ -34,12 +43,14 @@ final class IslandHostingView<Content: View>: NSHostingView<Content> {
     receivingExternalDrop = false
   }
   override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
-    receivingExternalDrop || super.prepareForDragOperation(sender)
+    guard HubDropReceiver.canRead(sender.draggingPasteboard) else { return super.prepareForDragOperation(sender) }
+    return !updateDropTarget(sender).isEmpty
   }
 
   override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
     guard !(sender.draggingSource is TrayFileIconView) else { return false }
-    guard receivingExternalDrop else { return super.performDragOperation(sender) }
+    guard HubDropReceiver.canRead(sender.draggingPasteboard) else { return super.performDragOperation(sender) }
+    guard !updateDropTarget(sender).isEmpty else { return false }
     dragState?(false)
     receivingExternalDrop = false
     return receiveDrop?(sender.draggingPasteboard) ?? false
@@ -86,6 +97,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     panel.closeIsland = { [weak self] in self?.model.collapse(force: true) }
     let hostingView = IslandHostingView(rootView: IslandView(model: model).preferredColorScheme(.dark))
     hostingView.registerForDraggedTypes(HubDropReceiver.types)
+    hostingView.acceptsDropAt = { [weak self] point in
+      guard let self else { return false }
+      let screenPoint = self.panel.convertPoint(toScreen: point)
+      let region = self.model.expanded ? self.islandFrame : self.notchOpeningFrame
+      return region.contains(screenPoint)
+    }
     hostingView.dragState = { [weak self] targeted in
       self?.model.setDropTarget(targeted)
     }
@@ -230,6 +247,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       width: size.width, height: size.height)
   }
 
+  // Keep the opening target at the notch, separate from the expanded content and its canvas.
+  private var notchOpeningFrame: NSRect {
+    guard let screen else { return .zero }
+    let width = model.notchWidth > 0 ? model.notchWidth + 16 : model.compactSize.width
+    let height = model.compactSize.height + 8
+    return NSRect(
+      x: panel.frame.midX - width / 2, y: screen.frame.maxY - height,
+      width: width, height: height)
+  }
+
   // The transparent animation canvas must not block the apps behind it.
   private func updatePointer() {
     guard model.visible, screen != nil else {
@@ -237,15 +264,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       hovering = false
       return
     }
-    let inside = islandFrame.contains(NSEvent.mouseLocation)
-    let acceptsPointer = inside || (externalFileDrag && NSEvent.pressedMouseButtons & 1 != 0)
+    let point = NSEvent.mouseLocation
+    let inside = islandFrame.contains(point)
+    let nearNotch = notchOpeningFrame.contains(point)
+    let acceptsPointer = inside || (nearNotch && externalFileDrag && NSEvent.pressedMouseButtons & 1 != 0)
     if panel.ignoresMouseEvents != !acceptsPointer { panel.ignoresMouseEvents = !acceptsPointer }
-    let notchWidth = model.compactSize.width
-    let notchTrigger = NSRect(
-      x: panel.frame.midX - notchWidth / 2,
-      y: islandFrame.maxY, width: notchWidth,
-      height: max(0, (screen?.frame.maxY ?? islandFrame.maxY) - islandFrame.maxY))
-    let nextHover = inside || notchTrigger.contains(NSEvent.mouseLocation)
+    let nextHover = nearNotch || (model.expanded && inside)
     if nextHover != hovering {
       hovering = nextHover
       model.hover(nextHover)
