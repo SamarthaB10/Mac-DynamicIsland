@@ -74,8 +74,9 @@ struct IslandView: View {
               finishedSignIn: { model.connectingSpotify = false; model.openForKeyboard?() })
               .overlay(alignment: .leading) {
                 if model.musicArtworkFocused {
-                  VStack(alignment: .leading, spacing: 22) {
+                  VStack(alignment: .leading, spacing: 14) {
                     navigationTabs
+                    HStack(spacing: 3) { islandControls }
                   }.frame(width: 76, alignment: .leading).padding(.bottom, 63)
                 }
               }
@@ -89,25 +90,31 @@ struct IslandView: View {
       HStack(spacing: 3) {
         if model.tab != .music || !model.musicArtworkFocused {
           navigationTabs
+          Spacer(minLength: 2)
+          islandControls
         }
-        Spacer(minLength: 2)
-        Button {
-          model.togglePin()
-        } label: {
-          Image(systemName: model.pinned ? "pin.fill" : "pin")
-            .frame(width: 24, height: 28).foregroundStyle(.white.opacity(model.pinned ? 1 : 0.6))
-        }.buttonStyle(.plain).help(model.pinned ? "Allow automatic close" : "Keep open")
-          .accessibilityLabel(model.pinned ? "Unpin island" : "Pin island")
-        Button {
-          model.collapse(force: true)
-        } label: {
-          Image(systemName: "chevron.up").font(.system(size: 12, weight: .semibold)).frame(
-            width: 24, height: 28)
-        }.buttonStyle(.plain).help("Collapse Island").accessibilityLabel("Collapse Island")
-      }
+      }.frame(height: 28)
     }
     .padding(16)
   }
+  private var islandControls: some View {
+    Group {
+      Button {
+        model.togglePin()
+      } label: {
+        Image(systemName: model.pinned ? "pin.fill" : "pin")
+          .frame(width: 24, height: 28).foregroundStyle(.white.opacity(model.pinned ? 1 : 0.6))
+      }.buttonStyle(IslandIconButtonStyle()).help(model.pinned ? "Allow automatic close" : "Keep open")
+        .accessibilityLabel(model.pinned ? "Unpin island" : "Pin island")
+      Button {
+        model.collapse(force: true)
+      } label: {
+        Image(systemName: "chevron.up").font(.system(size: 12, weight: .semibold)).frame(
+          width: 24, height: 28)
+      }.buttonStyle(IslandIconButtonStyle()).help("Collapse Island").accessibilityLabel("Collapse Island")
+    }
+  }
+
   private var navigationTabs: some View {
     ForEach(IslandTab.allCases, id: \.self) { tab in
       Button {

@@ -22,7 +22,7 @@ struct SpotifyHeartButton: View {
         .font(.system(size: compact ? 16 : 18))
         .frame(width: 32, height: compact ? 22 : 28)
     }
-    .buttonStyle(.plain)
+    .buttonStyle(IslandIconButtonStyle())
     .disabled(library.saving || (library.connected && (uri?.hasPrefix("spotify:track:") != true || library.saved == nil)))
     .accessibilityLabel(label).help(label)
     .task(id: "\(uri ?? "")|\(library.connected)") { await library.select(uri) }

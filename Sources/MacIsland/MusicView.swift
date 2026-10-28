@@ -133,7 +133,7 @@ struct MusicView: View {
   private var devicesButton: some View {
     Button(action: showDevices) {
       Image(systemName: "headphones").font(.system(size: artworkFocused ? 16 : 18)).frame(width: 32, height: artworkFocused ? 22 : 28)
-    }.buttonStyle(.plain).accessibilityLabel("Show audio devices").help("Audio devices")
+    }.buttonStyle(IslandIconButtonStyle()).accessibilityLabel("Show audio devices").help("Audio devices")
   }
 
   private func time(_ seconds: Double) -> String {
@@ -147,7 +147,7 @@ struct MusicView: View {
     Button { media.command(command) } label: {
       Image(systemName: symbol).font(.system(size: artworkFocused ? (prominent ? 20 : 16) : (prominent ? 23 : 20), weight: .semibold))
         .frame(width: 32, height: artworkFocused ? 22 : 28)
-    }.buttonStyle(.plain).accessibilityLabel(label).help(label).disabled(media.busy)
+    }.buttonStyle(IslandIconButtonStyle()).accessibilityLabel(label).help(label).disabled(media.busy)
   }
 }
 
