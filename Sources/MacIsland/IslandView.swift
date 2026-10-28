@@ -49,6 +49,7 @@ struct IslandView: View {
       .animation(motion, value: model.visible)
       .shadow(color: .black.opacity(0.42), radius: 12, y: 8)
       .animation(motion, value: model.expanded)
+      .animation(motion, value: model.musicArtworkFocused)
       .animation(motion, value: model.connectionNotice)
       .padding(.top, IslandModel.canvasInset)
     }
@@ -65,7 +66,9 @@ struct IslandView: View {
         Group {
           switch model.tab {
           case .music:
-            MusicView(media: model.media, showDevices: { model.tab = .devices })
+            MusicView(
+              media: model.media, artworkFocused: $model.musicArtworkFocused,
+              showDevices: { model.tab = .devices })
           case .files: HubView(model: model)
           case .devices: DevicesView(audio: model.audio)
           }

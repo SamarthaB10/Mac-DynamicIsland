@@ -3,75 +3,135 @@ import SwiftUI
 
 struct MusicView: View {
   @ObservedObject var media: MediaController
+  @Binding var artworkFocused: Bool
   let showDevices: () -> Void
   @State private var scrub: Double?
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Namespace private var artworkTransition
+
+  private var visibleError: String? {
+    guard let error = media.error, error != "Open Spotify first." else { return nil }
+    return error
+  }
 
   var body: some View {
     VStack(spacing: 12) {
-      HStack(spacing: 14) {
-        AlbumCover(media: media, size: 60)
-        VStack(alignment: .leading, spacing: 5) {
-          Button {
-            media.openPlayer()
-          } label: {
-            Text(media.title).font(.system(size: 15, weight: .semibold)).lineLimit(1)
-              .frame(maxWidth: .infinity, alignment: .leading)
-          }.buttonStyle(.plain).help("Open this song in Spotify")
-            .accessibilityLabel("Open \(media.title) in Spotify")
-          Text(media.artist).font(.system(size: 12)).foregroundStyle(.white.opacity(0.55))
-            .lineLimit(1)
+      if artworkFocused {
+        cover(size: visibleError == nil ? 192 : 168)
+          .frame(maxWidth: .infinity)
+          .overlay(alignment: .trailing) {
+            VStack(spacing: 12) {
+              previousButton
+              playPauseButton
+              nextButton
+              saveButton
+              devicesButton
+            }
+          }
+        songDetails(centered: true)
+      } else {
+        HStack(spacing: 14) {
+          cover(size: 60)
+          songDetails(centered: false)
+          Spacer(minLength: 0)
+          PlayingIndicator(playing: media.playing).frame(width: 24, height: 20)
         }
-        Spacer(minLength: 0)
-        PlayingIndicator(playing: media.playing).frame(width: 24, height: 20)
       }
-      TimelineView(.animation(minimumInterval: 1, paused: !media.playing)) { context in
-        let elapsed = scrub ?? media.elapsed(at: context.date)
-        HStack(spacing: 7) {
-          Text(time(elapsed)).frame(width: 29, alignment: .leading)
-          SongProgress(
-            value: elapsed, duration: media.duration, enabled: media.hasTrack && !media.busy,
-            changed: { scrub = $0 },
-            committed: {
-              media.seek(to: $0)
-              scrub = nil
-            })
-          Text("−\(time(max(0, media.duration - elapsed)))").frame(width: 34, alignment: .trailing)
-        }.font(.system(size: 10).monospacedDigit()).foregroundStyle(.white.opacity(0.45))
-      }
-      HStack {
-        Button {
-          media.openPlayer()
-        } label: {
-          Image(systemName: "heart").font(.system(size: 18))
+      progress
+      if !artworkFocused {
+        HStack {
+          saveButton
+          Spacer()
+          previousButton
+          Spacer()
+          playPauseButton
+          Spacer()
+          nextButton
+          Spacer()
+          devicesButton
+        }.frame(height: 28)
+        if !media.hasTrack {
+          Button { media.openPlayer() } label: {
+            SpotifyMark().frame(width: 14, height: 14).frame(width: 28, height: 20)
+          }.buttonStyle(.plain).accessibilityLabel("Open Spotify").help("Open Spotify")
         }
-        .buttonStyle(.plain).accessibilityLabel("Open Spotify to save this song").help(
-          "Save this song in Spotify")
-        Spacer()
-        playbackButton("backward.end.fill", label: "Previous track", command: "previous track")
-        Spacer()
-        playbackButton(
-          media.playing ? "pause.fill" : "play.fill", label: media.playing ? "Pause" : "Play",
-          command: "playpause", prominent: true)
-        Spacer()
-        playbackButton("forward.end.fill", label: "Next track", command: "next track")
-        Spacer()
-        Button(action: showDevices) { Image(systemName: "headphones").font(.system(size: 18)) }
-          .buttonStyle(.plain).accessibilityLabel("Show audio devices").help("Audio devices")
-      }.frame(height: 28)
-      if !media.hasTrack {
-        Button { media.openPlayer() } label: {
-          SpotifyMark().frame(width: 14, height: 14).frame(width: 28, height: 20)
-        }.buttonStyle(.plain).accessibilityLabel("Open Spotify").help("Open Spotify")
       }
-      if let error = media.error, error != "Open Spotify first." {
-        Button {
-          media.command()
-        } label: {
+      if let error = visibleError {
+        Button { media.command() } label: {
           Text(error).font(.system(size: 9)).lineLimit(2)
-        }
-        .buttonStyle(.plain).accessibilityLabel("\(error) Try again")
+        }.buttonStyle(.plain).accessibilityLabel("\(error) Try again")
       }
     }
+  }
+
+  private func cover(size: CGFloat) -> some View {
+    Button {
+      withAnimation(reduceMotion ? nil : .spring(response: 0.36, dampingFraction: 0.86)) {
+        artworkFocused.toggle()
+      }
+    } label: {
+      AlbumCover(media: media, size: size)
+        .matchedGeometryEffect(id: "cover", in: artworkTransition)
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(artworkFocused ? "Show standard music layout" : "Show large album cover")
+    .help(artworkFocused ? "Show standard music layout" : "Show large album cover")
+  }
+
+  private func songDetails(centered: Bool) -> some View {
+    VStack(alignment: centered ? .center : .leading, spacing: 5) {
+      Button { media.openPlayer() } label: {
+        Text(media.title).font(.system(size: 15, weight: .semibold)).lineLimit(1)
+          .frame(maxWidth: .infinity, alignment: centered ? .center : .leading)
+      }.buttonStyle(.plain).help("Open this song in Spotify")
+        .accessibilityLabel("Open \(media.title) in Spotify")
+      Text(media.artist).font(.system(size: 12)).foregroundStyle(.white.opacity(0.55))
+        .lineLimit(1)
+    }
+  }
+
+  private var progress: some View {
+    TimelineView(.animation(minimumInterval: 1, paused: !media.playing)) { context in
+      let elapsed = scrub ?? media.elapsed(at: context.date)
+      HStack(spacing: 7) {
+        Text(time(elapsed)).frame(width: 29, alignment: .leading)
+        SongProgress(
+          value: elapsed, duration: media.duration, enabled: media.hasTrack && !media.busy,
+          changed: { scrub = $0 },
+          committed: {
+            media.seek(to: $0)
+            scrub = nil
+          })
+        Text("−\(time(max(0, media.duration - elapsed)))").frame(width: 34, alignment: .trailing)
+      }.font(.system(size: 10).monospacedDigit()).foregroundStyle(.white.opacity(0.45))
+    }
+  }
+
+  private var previousButton: some View {
+    playbackButton("backward.end.fill", label: "Previous track", command: "previous track")
+  }
+
+  private var playPauseButton: some View {
+    playbackButton(
+      media.playing ? "pause.fill" : "play.fill", label: media.playing ? "Pause" : "Play",
+      command: "playpause", prominent: true)
+  }
+
+  private var nextButton: some View {
+    playbackButton("forward.end.fill", label: "Next track", command: "next track")
+  }
+
+  private var saveButton: some View {
+    Button { media.openPlayer() } label: {
+      Image(systemName: "heart").font(.system(size: 18)).frame(width: 32, height: 28)
+    }.buttonStyle(.plain).accessibilityLabel("Open Spotify to save this song")
+      .help("Save this song in Spotify")
+  }
+
+  private var devicesButton: some View {
+    Button(action: showDevices) {
+      Image(systemName: "headphones").font(.system(size: 18)).frame(width: 32, height: 28)
+    }.buttonStyle(.plain).accessibilityLabel("Show audio devices").help("Audio devices")
   }
 
   private func time(_ seconds: Double) -> String {
@@ -82,9 +142,7 @@ struct MusicView: View {
   private func playbackButton(
     _ symbol: String, label: String, command: String, prominent: Bool = false
   ) -> some View {
-    Button {
-      media.command(command)
-    } label: {
+    Button { media.command(command) } label: {
       Image(systemName: symbol).font(.system(size: prominent ? 23 : 20, weight: .semibold))
         .frame(width: 32, height: 28)
     }.buttonStyle(.plain).accessibilityLabel(label).help(label).disabled(media.busy)

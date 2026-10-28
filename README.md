@@ -27,7 +27,7 @@ A [ZIP download](https://github.com/SamarthaB10/Mac-DynamicIsland/releases/lates
 
 ### Now Playing
 
-Play music in Spotify. The cover and playing indicator appear beside the notch. Open the island for playback controls and the song progress bar. Select the song title to open Spotify. The heart opens Spotify so you can save the song there; it does not change your saved songs itself. The headphones button opens Devices.
+Play music in Spotify. The cover and playing indicator appear beside the notch. Open the island for playback controls and the song progress bar. Click the album cover to switch to a taller view with a large cover in the center and playback controls down the right side. Click it again to return. The title, artist, and progress bar stay below the large cover. This layout stays active through song changes and closing the island, and resets when the app restarts. Select the song title to open Spotify. The heart opens Spotify so you can save the song there; it does not change your saved songs itself. The headphones button opens Devices.
 
 Allow Automation access to Spotify when macOS asks. If access is denied, change it in **System Settings > Privacy & Security > Automation**. Apple Music is not supported.
 
