@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 
 struct GoogleDriveView: View {
   @ObservedObject var drive: GoogleDriveController
-  @ObservedObject var model: IslandModel
+  @ObservedObject var files: HubFileStore
   @State private var search = ""
   @State private var dropTarget = false
 
@@ -99,13 +99,13 @@ struct GoogleDriveView: View {
             Spacer()
             Text("Drop files here").font(.caption).foregroundStyle(.secondary)
           }
-          if model.files.isEmpty {
+          if files.files.isEmpty {
             Text("Drag files here from Finder, or add files to Hub first.").font(.caption)
               .foregroundStyle(.secondary)
           } else {
             ScrollView(.horizontal) {
               HStack(spacing: 10) {
-                ForEach(model.files, id: \.self) { file in
+                ForEach(files.files, id: \.self) { file in
                   Button {
                     drive.upload([file])
                   } label: {

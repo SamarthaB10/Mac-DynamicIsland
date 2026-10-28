@@ -14,7 +14,7 @@ struct HubView: View {
         ForEach(HubSection.allCases, id: \.self) { Text($0.rawValue).tag($0) }
       }.pickerStyle(.segmented).labelsHidden()
       if model.hubView == .files {
-        HubFilesView(model: model)
+        HubFilesView(model: model, files: model.hubFiles)
       } else {
         SavedTextView(model: model)
       }
@@ -145,6 +145,7 @@ private struct SavedTextRow: View {
 
 private struct HubFilesView: View {
   @ObservedObject var model: IslandModel
+  @ObservedObject var files: HubFileStore
   @State private var imageAction: ImageActionConfiguration?
   @State private var pendingImageAction: FileAction?
   @State private var showingOptions = false
@@ -152,13 +153,13 @@ private struct HubFilesView: View {
   var body: some View {
     VStack(spacing: 10) {
       HStack {
-        Text("\(model.selectedFiles.count) selected").foregroundStyle(.white.opacity(0.7))
+        Text("\(files.selectedFiles.count) selected").foregroundStyle(.white.opacity(0.7))
         Spacer()
-        Button(model.selectedFiles.count == model.files.count ? "Clear Selection" : "Select All") {
-          model.selectedFiles = model.selectedFiles.count == model.files.count ? [] : Set(model.files)
-        }.disabled(model.files.isEmpty)
+        Button(files.selectedFiles.count == files.files.count ? "Clear Selection" : "Select All") {
+          files.selectedFiles = files.selectedFiles.count == files.files.count ? [] : Set(files.files)
+        }.disabled(files.files.isEmpty)
       }.font(.system(size: 11))
-      if model.files.isEmpty {
+      if files.files.isEmpty {
         Button { model.chooseFiles() } label: {
           Image(systemName: "tray.and.arrow.down").font(.system(size: 24, weight: .light))
             .frame(maxWidth: .infinity, maxHeight: .infinity).contentShape(Rectangle())
@@ -167,23 +168,23 @@ private struct HubFilesView: View {
       } else {
         ScrollView(.horizontal) {
           HStack(alignment: .top, spacing: 12) {
-            ForEach(model.files, id: \.self) { url in
+            ForEach(files.files, id: \.self) { url in
               VStack(spacing: 5) {
                 Toggle(isOn: Binding(
-                  get: { model.selectedFiles.contains(url) },
-                  set: { if $0 { model.selectedFiles.insert(url) } else { model.selectedFiles.remove(url) } }
+                  get: { files.selectedFiles.contains(url) },
+                  set: { if $0 { files.selectedFiles.insert(url) } else { files.selectedFiles.remove(url) } }
                 )) { Text("Select \(url.lastPathComponent)") }
                   .labelsHidden().toggleStyle(.checkbox)
                   .accessibilityLabel("Select \(url.lastPathComponent)")
                 TrayFileIcon(
-                  url: url, preview: { model.previewFile(url) }, began: { model.beginFileDrag() },
-                  ended: { model.endFileDrag(url, result: $0) }, writer: { model.dragWriter(for: url) },
+                  url: url, preview: { files.showPreview(url) }, began: { model.beginFileDrag() },
+                  ended: { model.endFileDrag(url, result: $0) }, writer: { files.dragWriter(for: url) },
                   islandFrame: { model.fileDragFrame },
-                  enabled: !model.isChoosingFiles && !model.processingFiles && !model.pendingOnlineDrags.contains(url) && !model.uploadingFiles.contains(url)
+                  enabled: !model.isChoosingFiles && files.canRemove(url)
                 ).saturation(0).frame(width: 84, height: 55)
                   .help("Click to preview, or drag out to remove from the Hub")
-                Button("Remove") { model.removeFile(url) }
-                  .disabled(model.processingFiles || model.pendingOnlineDrags.contains(url) || model.uploadingFiles.contains(url))
+                Button("Remove") { files.remove(url) }
+                  .disabled(!files.canRemove(url))
                   .buttonStyle(.plain).font(.system(size: 10)).foregroundStyle(.white.opacity(0.7))
                   .accessibilityLabel("Remove \(url.lastPathComponent) from Hub")
               }.frame(width: 84)
@@ -196,10 +197,10 @@ private struct HubFilesView: View {
           }.padding(.vertical, 3)
         }.frame(maxHeight: .infinity)
       }
-      if let error = model.fileError {
+      if let error = files.error {
         Text(error).font(.system(size: 11)).textSelection(.enabled)
       }
-      if model.processingFiles {
+      if files.processing {
         HStack { ProgressView().controlSize(.small); Text("Creating result files…") }
       } else if showingOptions {
         ScrollView(.horizontal) {
@@ -210,11 +211,11 @@ private struct HubFilesView: View {
           actionButton("Images to PDF", symbol: "doc.richtext") { model.performFileAction(.imagePDF) }
           actionButton("Compress Images", symbol: "arrow.down.right.and.arrow.up.left") { configure(.compress) }
           actionButton("Compress PDFs", symbol: "doc.zipper") { model.performFileAction(.compressPDF) }
-            if !model.selectedFiles.intersection(model.onlineFiles).isEmpty {
+            if !files.selectedOnlineFiles.isEmpty {
               actionButton("Save to Downloads", symbol: "arrow.down.to.line") { model.saveOnlineFilesToDownloads() }
             }
           }.padding(.vertical, 2)
-        }.frame(height: 70).disabled(model.selectedFiles.isEmpty || model.isChoosingFiles || !model.pendingOnlineDrags.isEmpty)
+        }.frame(height: 70).disabled(files.selectedFiles.isEmpty || model.isChoosingFiles || !files.canProcess)
       }
       HStack {
         Button { model.openGoogleDrive?() } label: {

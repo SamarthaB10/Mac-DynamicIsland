@@ -1,5 +1,26 @@
 # Verification
 
+## Hub file lifetime and island controls: 2026-10-28
+
+Work why: Keep Hub file safety rules in one module and make island controls respond separately.
+
+`HubFileStore` now owns Hub references, temporary files, drag completion, upload protection, and removal decisions. Views use its removal decision instead of inspecting active-operation collections. Upload sources are protected before work is scheduled and released when the work ends. An outgoing temporary file is removed only after drop acceptance and copy completion. Native file promises and browser drop handling stay in their existing adapters.
+
+In the large artwork view, Pin and Collapse appear below the left navigation tabs. Other views keep their existing control position. Icon buttons show press feedback separately. Startup reuses the first running app copy instead of creating a second widget.
+
+Checks:
+
+- `./scripts/build.sh`: passed for the host Mac after the final source changes.
+- `codesign --verify --deep --strict 'dist/Mac Island.app'`: passed.
+- `xcrun swift-format lint Sources/MacIsland/HubFileStore.swift Sources/MacIsland/IslandIconButtonStyle.swift Sources/MacIsland/MacIslandApp.swift`: passed.
+- `git diff --check`: passed.
+- `swift test`: compiled and linked the debug build, then reported `no tests found`. The package has no test target. No tests were added.
+- Separate Standards and Spec reviews both found that upload protection initially started too late. This was corrected by protecting the source synchronously before scheduling work. No other findings were reported.
+
+The user approved quitting the old development copy and checking the fresh build, then confirmed that everything works. The native accessibility tree showed the artwork layout and Pin, Collapse, and playback controls. A second executable launch returned successfully without creating another long-running copy. Native screenshot capture timed out; the user then said screenshots were not needed. File transfer failure cases were checked in source, not through live Google Drive uploads.
+
+At the user's request, the fresh bundle was copied to `/Applications/Mac Island.app`. The installed bundle passed `codesign --verify --deep --strict`, and `cmp` confirmed that its executable matches the fresh build. `ps` confirmed that the installed path is running. No dependency was added. No database or cloud upload was used. Existing Spotify access was used by the running app. No release deployment was made.
+
 ## Restore on open: 2026-10-23
 
 The app process was running while the saved `islandHidden` preference was true. Opening the existing app had no restore handler. The app now handles a reopen request by showing and opening the island. This keeps the saved hide choice for normal startup and provides a direct way to restore it from Finder or Launchpad.

@@ -74,7 +74,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var gestureHandled = false
   private var dragOrigin: NSPoint?
   private var externalFileDrag = false
-  private let dropReceiver = HubDropReceiver()
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     configureEditMenu()
@@ -106,11 +105,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     hostingView.dragState = { [weak self] targeted in
       self?.model.setDropTarget(targeted)
     }
-    dropReceiver.addedFiles = { [weak self] urls, online in
-      if online { self?.model.addOnlineFiles(urls) } else { self?.model.addFiles(urls) }
-    }
-    dropReceiver.failed = { [weak self] in self?.model.actionReport = $0 }
-    hostingView.receiveDrop = { [weak self] in self?.dropReceiver.receive($0) ?? false }
+    hostingView.receiveDrop = { [weak self] in self?.model.hubFiles.receive($0) ?? false }
     hostingView.sizingOptions = []
     panel.contentView = hostingView
     model.updateInteraction = { [weak self] in
@@ -195,7 +190,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationWillTerminate(_ notification: Notification) {
-    dropReceiver.cleanup()
+    model.hubFiles.cleanup()
     if let globalMouseMonitor { NSEvent.removeMonitor(globalMouseMonitor) }
     if let localMouseMonitor { NSEvent.removeMonitor(localMouseMonitor) }
   }
@@ -397,10 +392,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   @objc private func showGoogleDrive() {
     model.collapse(force: true)
     if driveWindow == nil {
-      let drive = driveController ?? GoogleDriveController()
-      drive.receivedFile = { [weak self] url in self?.model.addFiles([url]) }
-      drive.retainUploadFiles = { [weak self] urls in self?.model.retainUploadFiles(urls) ?? false }
-      drive.releaseUploadFiles = { [weak self] urls in self?.model.releaseUploadFiles(urls) }
+      let drive = driveController ?? GoogleDriveController(hubFiles: model.hubFiles)
+      drive.receivedFile = { [weak self] url in self?.model.hubFiles.add([url]) }
       driveController = drive
       let window = NSWindow(
         contentRect: NSRect(x: 0, y: 0, width: 700, height: 520),
@@ -408,7 +401,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         defer: false)
       window.title = "Google Drive — Mac Island"
       window.isReleasedWhenClosed = false
-      window.contentView = NSHostingView(rootView: GoogleDriveView(drive: drive, model: model))
+      window.contentView = NSHostingView(rootView: GoogleDriveView(drive: drive, files: model.hubFiles))
       window.center()
       driveWindow = window
     }
