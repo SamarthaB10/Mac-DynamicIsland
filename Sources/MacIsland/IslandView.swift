@@ -68,33 +68,24 @@ struct IslandView: View {
           case .music:
             MusicView(
               media: model.media, artworkFocused: $model.musicArtworkFocused,
-              showDevices: { model.tab = .devices })
+              showDevices: { model.tab = .devices },
+              prepareSignIn: { model.connectingSpotify = true; model.openForKeyboard?() },
+              finishedSignIn: { model.connectingSpotify = false; model.openForKeyboard?() })
+              .overlay(alignment: .leading) {
+                if model.musicArtworkFocused {
+                  VStack(alignment: .leading, spacing: 22) {
+                    navigationTabs
+                  }.frame(width: 76, alignment: .leading).padding(.bottom, 63)
+                }
+              }
           case .files: HubView(model: model)
           case .devices: DevicesView(audio: model.audio)
           }
         }
       }.frame(maxWidth: .infinity, maxHeight: .infinity)
       HStack(spacing: 3) {
-        ForEach(IslandTab.allCases, id: \.self) { tab in
-          Button {
-            model.tab = tab
-            if tab == .files { model.openForKeyboard?() }
-            if tab == .devices {
-              model.weather.refreshIfNeeded()
-            }
-          } label: {
-            Text(tab.rawValue)
-              .font(.system(size: 10.5, weight: .semibold))
-              .padding(.horizontal, 9).padding(.vertical, 6)
-              .background {
-                if model.tab == tab {
-                  Capsule().fill(.white.opacity(0.15)).matchedGeometryEffect(
-                    id: "tab", in: selection)
-                }
-              }
-          }
-          .buttonStyle(.plain)
-          .accessibilityAddTraits(model.tab == tab ? .isSelected : [])
+        if model.tab != .music || !model.musicArtworkFocused {
+          navigationTabs
         }
         Spacer(minLength: 2)
         Button {
@@ -113,6 +104,32 @@ struct IslandView: View {
       }
     }
     .padding(16)
+  }
+  private var navigationTabs: some View {
+    ForEach(IslandTab.allCases, id: \.self) { tab in
+      Button {
+        model.tab = tab
+        if tab == .files { model.openForKeyboard?() }
+        if tab == .devices {
+          model.weather.refreshIfNeeded()
+        }
+      } label: {
+        Text(tab.rawValue)
+          .font(.system(size: model.tab == .music && model.musicArtworkFocused ? 9.5 : 10.5, weight: .semibold))
+          .lineLimit(1)
+          .fixedSize(horizontal: true, vertical: false)
+          .padding(.horizontal, model.tab == .music && model.musicArtworkFocused ? 0 : 9)
+          .padding(.vertical, model.tab == .music && model.musicArtworkFocused ? 3 : 6)
+          .background {
+            if model.tab == tab && !(model.tab == .music && model.musicArtworkFocused) {
+              Capsule().fill(.white.opacity(0.15)).matchedGeometryEffect(
+                id: "tab", in: selection)
+            }
+          }
+      }
+      .buttonStyle(.plain)
+      .accessibilityAddTraits(model.tab == tab ? .isSelected : [])
+    }
   }
 
 }
