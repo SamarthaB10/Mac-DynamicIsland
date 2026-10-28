@@ -32,6 +32,7 @@ final class IslandModel: ObservableObject {
   @Published var actionReport: String?
   @Published private(set) var processingFiles = false
   private let textStore = SavedTextStore()
+  private let filePreview = HubFilePreview()
   private var textStoreLoaded = false
   @Published var fileError: String?
   @Published private(set) var dropTargeted = false
@@ -151,9 +152,18 @@ final class IslandModel: ObservableObject {
     draggingFile = true
     send(5)
   }
-  func endFileDrag(_ url: URL, accepted: Bool) {
+  var fileDragFrame: NSRect {
+    guard let window = islandWindow else { return .zero }
+    let size = panelSize
+    return NSRect(
+      x: window.frame.midX - size.width / 2,
+      y: window.frame.maxY - Self.canvasInset - size.height,
+      width: size.width, height: size.height)
+  }
+
+  func endFileDrag(_ url: URL, result: HubFileDragResult) {
     if onlineFiles.contains(url) {
-      if accepted {
+      if result == .delivered {
         acceptedOnlineDrags.insert(url)
         finishOnlineDrag(url)
       } else {
@@ -161,8 +171,9 @@ final class IslandModel: ObservableObject {
         outgoingPromises.removeValue(forKey: url)
         acceptedOnlineDrags.remove(url)
         deliveredOnlineDrags.remove(url)
+        if result == .discarded { removeFile(url) }
       }
-    } else if accepted { removeFile(url) }
+    } else if result != .kept { removeFile(url) }
     draggingFile = false
     updateFileInteraction()
   }
@@ -208,12 +219,12 @@ final class IslandModel: ObservableObject {
     else { picker.begin(completionHandler: completion) }
   }
 
-  func reveal(_ url: URL) {
+  func previewFile(_ url: URL) {
     guard FileManager.default.fileExists(atPath: url.path) else {
       fileError = "This file was moved or deleted. Remove it from the Hub."
       return
     }
-    NSWorkspace.shared.activateFileViewerSelecting([url])
+    filePreview.show(url)
   }
 
   func retainUploadFiles(_ urls: [URL]) -> Bool {
@@ -234,13 +245,19 @@ final class IslandModel: ObservableObject {
     if onlineFiles.contains(url) {
       do { try FileManager.default.removeItem(at: url) }
       catch {
-        fileError = "The temporary online file could not be removed. \(error.localizedDescription)"
-        return
+        let failure = error as NSError
+        // A browser or macOS can remove a temporary file before its Hub entry.
+        guard failure.domain == NSCocoaErrorDomain && failure.code == NSFileNoSuchFileError else {
+          fileError = "The temporary online file could not be removed. \(error.localizedDescription)"
+          return
+        }
       }
       onlineFiles.remove(url)
     }
+    filePreview.close(url)
     files.removeAll { $0 == url }
     selectedFiles.remove(url)
+    fileError = nil
   }
 
   func saveText() {
