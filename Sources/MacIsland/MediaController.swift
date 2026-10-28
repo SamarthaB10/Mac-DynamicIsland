@@ -11,6 +11,8 @@ final class MediaController: ObservableObject {
   @Published private(set) var error: String?
   @Published private(set) var artwork: NSImage?
   @Published private(set) var duration: Double = 0
+  @Published private(set) var trackURI: String?
+  let library = SpotifyLibrary()
   private var position: Double = 0
   private var positionDate = Date()
   private let artworkSession: URLSession = {
@@ -34,6 +36,7 @@ final class MediaController: ObservableObject {
           guard let self, let info = notification.userInfo else { return }
           let nextTitle = info["Name"] as? String ?? "Nothing playing"
           if self.title != nextTitle {
+            self.trackURI = nil
             self.artworkTask?.cancel()
             self.artworkURL = nil
             self.artwork = nil
@@ -67,6 +70,7 @@ final class MediaController: ObservableObject {
     artworkURL = nil
     artworkTask?.cancel()
     duration = 0
+    trackURI = nil
   }
 
   func refreshRunningPlayer() {
@@ -109,7 +113,7 @@ final class MediaController: ObservableObject {
           \(action ?? "")
           if player state is stopped then return "stopped"
           set separator to ASCII character 31
-          return (player state as text) & separator & (name of current track) & separator & (artist of current track) & separator & (artwork url of current track) & separator & (player position as text) & separator & (duration of current track as text)
+          return (player state as text) & separator & (name of current track) & separator & (artist of current track) & separator & (artwork url of current track) & separator & (player position as text) & separator & (duration of current track as text) & separator & (id of current track)
       end tell
       """
     Task {
@@ -117,7 +121,8 @@ final class MediaController: ObservableObject {
       busy = false
       if let output {
         let fields = output.components(separatedBy: "\u{1f}")
-        if fields.count >= 6 {
+        if fields.count >= 7 {
+          trackURI = fields[6].hasPrefix("spotify:track:") ? fields[6] : nil
           title = fields[1]
           artist = fields[2]
           playing = fields[0].lowercased() == "playing"

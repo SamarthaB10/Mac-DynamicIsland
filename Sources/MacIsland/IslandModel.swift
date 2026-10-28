@@ -43,6 +43,9 @@ final class IslandModel: ObservableObject {
   var configuringImages = false {
     didSet { updateFileInteraction() }
   }
+  var connectingSpotify = false {
+    didSet { updateFileInteraction() }
+  }
   private(set) var draggingFile = false
   let media = MediaController()
   let weather = WeatherController()
@@ -63,7 +66,7 @@ final class IslandModel: ObservableObject {
   var contentSize: CGSize {
     if tab == .files { return Self.hubSize }
     if tab == .music && musicArtworkFocused {
-      return CGSize(width: Self.expandedSize.width, height: Self.hubSize.height)
+      return CGSize(width: 360, height: 300)
     }
     return CGSize(
       width: Self.expandedSize.width,
@@ -118,7 +121,7 @@ final class IslandModel: ObservableObject {
   private var now: UInt64 { DispatchTime.now().uptimeNanoseconds / 1_000_000 }
 
   private func updateFileInteraction() {
-    send(isChoosingFiles || configuringImages || draggingFile ? 5 : 6)
+    send(isChoosingFiles || configuringImages || connectingSpotify || draggingFile ? 5 : 6)
   }
 
   // Rust owns open/close policy. Swift schedules only its next requested deadline.

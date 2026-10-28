@@ -5,6 +5,8 @@ struct MusicView: View {
   @ObservedObject var media: MediaController
   @Binding var artworkFocused: Bool
   let showDevices: () -> Void
+  let prepareSignIn: () -> Void
+  let finishedSignIn: () -> Void
   @State private var scrub: Double?
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Namespace private var artworkTransition
@@ -15,12 +17,12 @@ struct MusicView: View {
   }
 
   var body: some View {
-    VStack(spacing: 12) {
+    VStack(spacing: artworkFocused ? 8 : 12) {
       if artworkFocused {
-        cover(size: visibleError == nil ? 192 : 168)
+        cover(size: 128)
           .frame(maxWidth: .infinity)
           .overlay(alignment: .trailing) {
-            VStack(spacing: 12) {
+            VStack(spacing: 4) {
               previousButton
               playPauseButton
               nextButton
@@ -62,6 +64,7 @@ struct MusicView: View {
         }.buttonStyle(.plain).accessibilityLabel("\(error) Try again")
       }
     }
+
   }
 
   private func cover(size: CGFloat) -> some View {
@@ -81,11 +84,11 @@ struct MusicView: View {
   private func songDetails(centered: Bool) -> some View {
     VStack(alignment: centered ? .center : .leading, spacing: 5) {
       Button { media.openPlayer() } label: {
-        Text(media.title).font(.system(size: 15, weight: .semibold)).lineLimit(1)
+        Text(media.title).font(.system(size: artworkFocused ? 13 : 15, weight: .semibold)).lineLimit(1)
           .frame(maxWidth: .infinity, alignment: centered ? .center : .leading)
       }.buttonStyle(.plain).help("Open this song in Spotify")
         .accessibilityLabel("Open \(media.title) in Spotify")
-      Text(media.artist).font(.system(size: 12)).foregroundStyle(.white.opacity(0.55))
+      Text(media.artist).font(.system(size: artworkFocused ? 11 : 12)).foregroundStyle(.white.opacity(0.55))
         .lineLimit(1)
     }
   }
@@ -122,15 +125,14 @@ struct MusicView: View {
   }
 
   private var saveButton: some View {
-    Button { media.openPlayer() } label: {
-      Image(systemName: "heart").font(.system(size: 18)).frame(width: 32, height: 28)
-    }.buttonStyle(.plain).accessibilityLabel("Open Spotify to save this song")
-      .help("Save this song in Spotify")
+    SpotifyHeartButton(
+      library: media.library, uri: media.trackURI, compact: artworkFocused,
+      prepareSignIn: prepareSignIn, finishedSignIn: finishedSignIn)
   }
 
   private var devicesButton: some View {
     Button(action: showDevices) {
-      Image(systemName: "headphones").font(.system(size: 18)).frame(width: 32, height: 28)
+      Image(systemName: "headphones").font(.system(size: artworkFocused ? 16 : 18)).frame(width: 32, height: artworkFocused ? 22 : 28)
     }.buttonStyle(.plain).accessibilityLabel("Show audio devices").help("Audio devices")
   }
 
@@ -143,8 +145,8 @@ struct MusicView: View {
     _ symbol: String, label: String, command: String, prominent: Bool = false
   ) -> some View {
     Button { media.command(command) } label: {
-      Image(systemName: symbol).font(.system(size: prominent ? 23 : 20, weight: .semibold))
-        .frame(width: 32, height: 28)
+      Image(systemName: symbol).font(.system(size: artworkFocused ? (prominent ? 20 : 16) : (prominent ? 23 : 20), weight: .semibold))
+        .frame(width: 32, height: artworkFocused ? 22 : 28)
     }.buttonStyle(.plain).accessibilityLabel(label).help(label).disabled(media.busy)
   }
 }
