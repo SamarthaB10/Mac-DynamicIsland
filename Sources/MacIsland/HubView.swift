@@ -10,9 +10,19 @@ struct HubView: View {
 
   var body: some View {
     VStack(spacing: 12) {
-      Picker("Hub view", selection: $model.hubView) {
-        ForEach(HubSection.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-      }.pickerStyle(.segmented).labelsHidden()
+      HStack(spacing: 4) {
+        Picker("Hub view", selection: $model.hubView) {
+          ForEach(HubSection.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+        }.pickerStyle(.segmented).labelsHidden()
+        if model.hubView == .savedText {
+          Button { model.pasteText() } label: {
+            Image(systemName: "clipboard").frame(width: 30, height: 30).contentShape(Rectangle())
+          }.accessibilityLabel("Paste and save").help("Paste and save")
+          Button { model.savedTextComposing.toggle() } label: {
+            Image(systemName: "plus").frame(width: 30, height: 30).contentShape(Rectangle())
+          }.accessibilityLabel("Toggle new saved text").help("Toggle new saved text")
+        }
+      }.buttonStyle(.plain)
       if model.hubView == .files {
         ActivityMusicStrip(media: model.media)
         ActivityJobStrip(activities: model.activities, open: model.openActivity, menuOpen: { model.menuOpen = $0 })
@@ -35,11 +45,8 @@ struct HubView: View {
 private struct SavedTextView: View {
   @ObservedObject var model: IslandModel
   @State private var inputHeight: CGFloat = 36
-  @State private var composing = false
   @State private var selectedID: UUID?
-  @State private var editingTitle = false
   @State private var title = ""
-  @State private var expanded = false
   @State private var showingActions = false
 
   private var selected: SavedItem? {
@@ -48,17 +55,7 @@ private struct SavedTextView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      HStack {
-        Text("Saved Text").font(.system(size: 12, weight: .semibold))
-        Spacer()
-        Button { model.pasteText() } label: {
-          Image(systemName: "clipboard").frame(width: 30, height: 30).contentShape(Rectangle())
-        }.accessibilityLabel("Paste and save").help("Paste and save")
-        Button { composing.toggle() } label: {
-          Image(systemName: "plus").frame(width: 30, height: 30).contentShape(Rectangle())
-        }.accessibilityLabel("Toggle new saved text").help("Toggle new saved text")
-      }.buttonStyle(.plain)
-      if composing {
+      if model.savedTextComposing {
         TextField("Title (optional)", text: $model.textTitle).textFieldStyle(.plain)
           .font(.system(size: 12, weight: .medium)).accessibilityLabel("Title for new saved text")
         HubTextInput(text: $model.textInput, height: $inputHeight, save: saveDraft)
@@ -74,7 +71,7 @@ private struct SavedTextView: View {
           Button("Cancel") {
             model.textInput = ""
             model.textTitle = ""
-            composing = false
+            model.savedTextComposing = false
           }
           Button("Save", action: saveDraft)
             .disabled(model.textInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -89,14 +86,14 @@ private struct SavedTextView: View {
             ForEach(model.savedItems) { entry in
               SavedTextRow(item: entry, selected: entry.id == item.id) {
                 selectedID = entry.id
-                editingTitle = false
-                expanded = false
+                model.savedTextEditingTitle = false
+                model.savedTextDetailExpanded = false
               }
             }
           }.padding(.trailing, 18)
-        }.frame(maxHeight: .infinity)
+        }.frame(height: CGFloat(min(model.savedItems.count, 3)) * 32)
         Divider().overlay(.white.opacity(0.15))
-        if editingTitle {
+        if model.savedTextEditingTitle {
           HStack {
             TextField("Title", text: $title).textFieldStyle(.plain)
               .accessibilityLabel("Saved text title").onSubmit { saveTitle(item) }
@@ -106,12 +103,10 @@ private struct SavedTextView: View {
         ScrollView {
           Text(item.text).font(.system(size: 12)).foregroundStyle(.white.opacity(0.85))
             .textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
-        }.frame(height: expanded ? 100 : 55)
+        }.frame(height: model.savedTextDetailExpanded ? 85 : 40)
           .accessibilityLabel("Selected saved text preview")
         Divider().overlay(.white.opacity(0.15))
         HStack {
-          Text(item.title ?? "Selected item").font(.system(size: 11))
-            .foregroundStyle(.white.opacity(0.65)).lineLimit(1)
           Spacer()
           Button { model.copyText(item) } label: {
             Image(systemName: "doc.on.doc").frame(width: 30, height: 30).contentShape(Rectangle())
@@ -124,15 +119,15 @@ private struct SavedTextView: View {
             VStack(alignment: .leading, spacing: 8) {
               Button("Edit title") {
                 title = item.title ?? ""
-                editingTitle = true
+                model.savedTextEditingTitle = true
                 showingActions = false
               }
               Button("Move up") { model.moveText(item.id, offset: -1); showingActions = false }
                 .disabled(model.savedItems.first?.id == item.id)
               Button("Move down") { model.moveText(item.id, offset: 1); showingActions = false }
                 .disabled(model.savedItems.last?.id == item.id)
-              Button(expanded ? "Collapse text" : "Expand text") {
-                expanded.toggle()
+              Button(model.savedTextDetailExpanded ? "Collapse text" : "Expand text") {
+                model.savedTextDetailExpanded.toggle()
                 showingActions = false
               }
               if item.webURL != nil {
@@ -142,7 +137,7 @@ private struct SavedTextView: View {
           }
           .onChange(of: showingActions) { _, open in model.menuOpen = open }
           .onDisappear { showingActions = false; model.menuOpen = false }
-          Button { model.removeText(item); editingTitle = false } label: {
+          Button { model.removeText(item); model.savedTextEditingTitle = false } label: {
             Image(systemName: "xmark").frame(width: 30, height: 30).contentShape(Rectangle())
           }.accessibilityLabel("Remove saved text entry").help("Remove saved text entry")
         }.buttonStyle(.plain)
@@ -152,19 +147,23 @@ private struct SavedTextView: View {
       }
     }
     .contextMenu { Button("Paste") { model.pasteText() } }
+    .onDisappear {
+      model.savedTextEditingTitle = false
+      model.savedTextDetailExpanded = false
+    }
   }
 
   private func saveDraft() {
     model.saveText()
     if model.textInput.isEmpty {
-      composing = false
+      model.savedTextComposing = false
       selectedID = model.savedItems.first?.id
     }
   }
 
   private func saveTitle(_ item: SavedItem) {
     model.setTextTitle(item.id, title: title)
-    editingTitle = false
+    model.savedTextEditingTitle = false
   }
 }
 
@@ -175,10 +174,8 @@ private struct SavedTextRow: View {
 
   var body: some View {
     Button(action: select) {
-      VStack(alignment: .leading, spacing: 3) {
-        Text(item.title ?? "Saved text").font(.system(size: 12, weight: .semibold)).lineLimit(1)
-        Text(item.text).font(.system(size: 11)).foregroundStyle(.white.opacity(0.7)).lineLimit(1)
-      }.frame(maxWidth: .infinity, alignment: .leading).padding(8)
+      Text(item.title ?? item.text).font(.system(size: 12, weight: .medium)).lineLimit(1)
+        .frame(maxWidth: .infinity, minHeight: 30, alignment: .leading).padding(.horizontal, 8)
         .background(selected ? Color.white.opacity(0.14) : Color.clear, in: RoundedRectangle(cornerRadius: 8))
         .contentShape(Rectangle())
     }.buttonStyle(.plain).accessibilityLabel(item.title ?? "Saved text")

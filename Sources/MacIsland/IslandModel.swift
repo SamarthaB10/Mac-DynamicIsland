@@ -27,6 +27,9 @@ final class IslandModel: ObservableObject {
   @Published var textInput = ""
   @Published var textTitle = ""
   @Published var textError: String?
+  @Published var savedTextComposing = false
+  @Published var savedTextDetailExpanded = false
+  @Published var savedTextEditingTitle = false
   @Published var actionReport: String?
   private let textStore = SavedTextStore()
   private var textStoreLoaded = false
@@ -61,7 +64,15 @@ final class IslandModel: ObservableObject {
   static let expandedSize = CGSize(width: 408, height: 216)
   static let hubSize = CGSize(width: 480, height: 360)
   var contentSize: CGSize {
-    if tab == .files { return Self.hubSize }
+    if tab == .files {
+      if hubView == .files { return Self.hubSize }
+      let rows = min(savedItems.count, 3)
+      let height: CGFloat = savedTextComposing ? 300 :
+        (savedItems.isEmpty ? 190 : 230 + CGFloat(rows) * 32)
+      return CGSize(width: 360, height: min(360, height
+        + (savedTextDetailExpanded ? 45 : 0) + (savedTextEditingTitle ? 28 : 0)
+        + (textError == nil ? 0 : 32)))
+    }
     if tab == .music && musicArtworkFocused {
       return CGSize(width: 272, height: 208)
     }
