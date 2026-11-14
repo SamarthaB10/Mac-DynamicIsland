@@ -5,17 +5,16 @@ struct IslandView: View {
   @ObservedObject var model: IslandModel
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Namespace private var selection
-  @State private var contentExpanded = false
   @State private var moreOpen = false
 
   private var motion: Animation? {
-    reduceMotion ? nil : .spring(response: 0.36, dampingFraction: 0.86)
+    reduceMotion ? nil : .smooth(duration: 0.26, extraBounce: 0)
   }
 
   var body: some View {
     ZStack(alignment: .top) {
       ZStack(alignment: .top) {
-        if contentExpanded {
+        if model.expanded {
           expandedContent
             .frame(width: model.contentSize.width, height: model.contentSize.height)
             .padding(.top, max(0, model.notchHeight - 6))
@@ -60,15 +59,12 @@ struct IslandView: View {
     .tint(.white)
     .font(.system(size: 12))
     .onExitCommand { model.collapse(force: true) }
-    .task(id: model.expanded) {
-      let expanded = model.expanded
-      if expanded && !reduceMotion {
-        try? await Task.sleep(for: .milliseconds(90))
-      }
-      guard !Task.isCancelled else { return }
-      withAnimation(reduceMotion ? nil : .easeOut(duration: 0.14)) { contentExpanded = expanded }
+    .onChange(of: model.expanded) { _, expanded in
+      if !expanded { closeMore() }
     }
-    .onChange(of: reduceMotion) { _, _ in contentExpanded = model.expanded }
+    .onChange(of: model.visible) { _, visible in
+      if !visible { closeMore() }
+    }
   }
 
   private var expandedContent: some View {
@@ -86,15 +82,7 @@ struct IslandView: View {
           case .devices: DevicesView(audio: model.audio)
           case .activities:
             VStack(spacing: 8) {
-              HStack(spacing: 8) {
-                AlbumCover(media: model.media, size: 28)
-                VStack(alignment: .leading, spacing: 2) {
-                  Text(model.media.title).font(.system(size: 11, weight: .semibold)).lineLimit(1)
-                  Text(model.media.artist).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
-                }
-                Spacer()
-                PlayingIndicator(playing: model.media.playing).frame(width: 24, height: 20)
-              }
+              ActivityMusicStrip(media: model.media)
               ActivityListView(activities: model.activities, open: model.openActivity)
             }
           }
@@ -125,6 +113,7 @@ struct IslandView: View {
         }.padding(12)
       }
       .onChange(of: moreOpen) { _, open in model.menuOpen = open }
+      .onDisappear { closeMore() }
       Button {
         model.setVisible(false)
       } label: {
@@ -140,6 +129,11 @@ struct IslandView: View {
           width: 24, height: 28)
       }.buttonStyle(IslandIconButtonStyle()).help("Collapse Island").accessibilityLabel("Collapse Island")
     }
+  }
+
+  private func closeMore() {
+    moreOpen = false
+    model.menuOpen = false
   }
 
   private var navigationTabs: some View {

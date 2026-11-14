@@ -95,3 +95,29 @@ struct ActivityListView: View {
     .accessibilityLabel("Activities")
   }
 }
+
+// Observe playback here so Activity reflects track changes without a tab change.
+struct ActivityMusicStrip: View {
+  @ObservedObject var media: MediaController
+
+  var body: some View {
+    HStack(spacing: 8) {
+      AlbumCover(media: media, size: 28)
+      VStack(alignment: .leading, spacing: 2) {
+        Text(media.hasTrack ? media.title : "Spotify")
+          .font(.system(size: 11, weight: .semibold)).lineLimit(1)
+        Text(media.hasTrack ? media.artist : "No current song")
+          .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
+      }
+      Spacer(minLength: 0)
+      Button { media.command("playpause") } label: {
+        Image(systemName: media.playing ? "pause.fill" : "play.fill")
+          .frame(width: 28, height: 28)
+      }
+      .buttonStyle(IslandIconButtonStyle())
+      .accessibilityLabel(media.playing ? "Pause" : "Play")
+      .help(media.playing ? "Pause" : "Play")
+      .disabled(!media.hasTrack || media.busy)
+    }
+  }
+}

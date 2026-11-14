@@ -275,7 +275,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       return
     }
     hiddenHoverArmed = false
-    let inside = islandFrame.contains(point)
+    let radius: CGFloat = model.expanded ? 40 : 18
+    let inside = NSBezierPath(roundedRect: islandFrame, xRadius: radius, yRadius: radius)
+      .contains(point)
     let acceptsPointer = inside || (nearNotch && externalFileDrag && NSEvent.pressedMouseButtons & 1 != 0)
     if panel.ignoresMouseEvents != !acceptsPointer { panel.ignoresMouseEvents = !acceptsPointer }
     let nextHover = model.expanded ? inside : nearNotch

@@ -18,7 +18,7 @@ A [ZIP download](https://github.com/SamarthaB10/Mac-DynamicIsland/releases/lates
 
 ## Use the island
 
-- Move the pointer near the notch to open it. Move away to close it.
+- Move the pointer near the notch to open it. Move away from the visible island to close it after a short delay. Keep open, active pickers, menus, and file drags protect the current interaction.
 - Select the pin only when you want it to stay open. The chevron or Escape closes and unpins it.
 - Swipe right over the island to hide it. Swipe left over the notch area to show it again. A horizontal two-finger trackpad gesture is supported. On the compact island, a mouse drag is also supported.
 - Select the **Hide Island** eye icon to hide the island completely. Command-H also hides it while Mac Island has keyboard focus. Move the pointer away, then return to the notch area to restore it. A left swipe also restores it.
@@ -28,13 +28,13 @@ A [ZIP download](https://github.com/SamarthaB10/Mac-DynamicIsland/releases/lates
 
 ### Now Playing
 
-Play music in Spotify. The cover and playing indicator appear beside the notch. Open the island for playback controls and the song progress bar. Click the album cover to switch to a compact artwork view with a large cover in the center, tabs down the left side, and playback controls down the right side. Click it again to return. The title, artist, and progress bar stay below the large cover. This layout stays active through song changes and closing the island, and resets when the app restarts. Select the song title to open Spotify. The heart connects to Spotify and adds or removes the current song from Liked Songs. Its filled state comes from Spotify. On first use, enter a Spotify developer app client ID and sign in with the same account as the desktop player. Register `http://127.0.0.1:43827/oauth/callback` as the app redirect URI. Mac Island requests `user-library-read` and `user-library-modify` and stores tokens in macOS Keychain. No client secret is required. Right-click the heart to connect again. Spotify development-mode account restrictions still apply. The headphones button opens Devices.
+Play music in Spotify. The cover and playing indicator appear beside the notch. Open the island for playback controls and the song progress bar. Click the album cover to switch to a compact artwork view with a large cover in the center, icon navigation and playback controls below the cover. Click it again to return. The title, artist, progress bar, and playback controls stay below the large cover. Feature navigation uses SF Symbols with help text and accessible names; there are no navigation or playback columns beside the cover. This layout stays active through song changes and closing the island, and resets when the app restarts. Select the song title to open Spotify. The heart connects to Spotify and adds or removes the current song from Liked Songs. Its filled state comes from Spotify. On first use, enter a Spotify developer app client ID and sign in with the same account as the desktop player. Register `http://127.0.0.1:43827/oauth/callback` as the app redirect URI. Mac Island requests `user-library-read` and `user-library-modify` and stores tokens in macOS Keychain. No client secret is required. Right-click the heart to connect again. Spotify development-mode account restrictions still apply. The More button opens audio output, Saved Text, weather, and Keep open. Hide and Collapse remain directly available.
 
 Allow Automation access to Spotify when macOS asks. If access is denied, change it in **System Settings > Privacy & Security > Automation**. Apple Music is not supported.
 
 ### Activity
 
-Drive transfers and Hub file actions share a native activity engine. Music stays visible beside a small job indicator at the notch. Select the job indicator to open its Drive or Hub view. Select **Activity** in the expanded island to see all current jobs, including jobs grouped behind another one.
+Drive transfers and Hub file actions share a native activity engine. Music stays visible beside a small job indicator at the notch. Select the job indicator to open its Drive or Hub view. Select the **Activity** list icon in the expanded island to see all current jobs, including jobs grouped behind another one.
 
 A ring and bar show real byte progress when the transfer has a known total. A spinner means the total is unknown. Hub file work also uses unknown progress. A check means success; a warning means failure, including a partial failure. Success and cancellation remain for five seconds; failures remain for ten seconds. Detailed results stay in the existing Drive status or Hub report. Results do not open or unhide the island.
 

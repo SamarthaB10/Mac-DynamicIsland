@@ -1,3 +1,13 @@
+## Quiet native UI states: 2026-11-13
+
+Work why: Reduce competing controls in music and keep the playing island small at the notch.
+
+The normal player, centered artwork, and activity list are states of one native interface. Feature navigation uses SF Symbols with help and accessibility names. The artwork state has no side columns. Activity keeps an observed music strip. More provides less frequent controls; Hide and Collapse remain direct actions. Picker, drag, sign-in, and menu protection remain in use. Pointer exit uses the rounded visible surface and a 700 ms grace interval.
+
+The first source reviews found a stale music strip and possible menu protection after its view was removed. The correction observes the media controller in the strip and clears menu protection when the controls disappear or the island hides/closes. A Spec review also identified transparent-corner hover and uncertain content/shape timing. The correction uses the rounded surface and removes the delayed content task. Shape motion uses no extra bounce. These changes still require native verification below; source does not prove smooth motion.
+
+Native access to the prior installed build worked during this task. Its compact player and music control accessibility names were observed. This observation does not validate the changed build. The seven existing public ActivityStore checks pass. No new UI or Rust test boundary was added. Native checks and final bundle comparison will be recorded after the updated build runs.
+
 # Verification
 
 ## Native activity engine: 2026-11-13

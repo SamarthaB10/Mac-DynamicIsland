@@ -57,7 +57,7 @@ struct MusicView: View {
 
   private func cover(size: CGFloat) -> some View {
     Button {
-      withAnimation(reduceMotion ? nil : .spring(response: 0.36, dampingFraction: 0.86)) {
+      withAnimation(reduceMotion ? nil : .smooth(duration: 0.26, extraBounce: 0)) {
         artworkFocused.toggle()
       }
     } label: {
