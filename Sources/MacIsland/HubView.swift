@@ -74,6 +74,7 @@ private struct SavedTextView: View {
               Divider().overlay(.white.opacity(0.15))
             }
           }
+          .padding(.trailing, 18)
         }
       }
     }
@@ -131,7 +132,7 @@ private struct SavedTextRow: View {
           .accessibilityLabel("Edit saved text title").help("Edit title")
         Spacer()
         Button { model.removeText(item) } label: {
-          Image(systemName: "xmark").frame(width: 24, height: 24)
+          Image(systemName: "xmark").frame(width: 30, height: 30).contentShape(Rectangle())
         }.accessibilityLabel("Remove saved text").help("Remove")
       }.buttonStyle(.plain).font(.system(size: 11, weight: .medium))
     }.padding(.vertical, 6)

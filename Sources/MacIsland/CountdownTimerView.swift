@@ -14,17 +14,14 @@ struct CountdownTimerView: View {
     return TimeInterval(m * 60 + s)
   }
 
-  private var timeText: String {
-    let value = Int(ceil(timer.remaining))
-    return String(format: "%02d:%02d", value / 60, value % 60)
-  }
+
 
   var body: some View {
     VStack(spacing: 12) {
       if timer.state == .running || timer.state == .paused {
-        Text(timeText)
+        Text(timer.remainingText)
           .font(.system(size: 28, weight: .medium, design: .rounded).monospacedDigit())
-          .accessibilityLabel("Time remaining \(timeText)")
+          .accessibilityLabel("Time remaining \(timer.remainingText)")
         HStack(spacing: 16) {
           if timer.state == .running {
             Button { timer.pause() } label: { Label("Pause", systemImage: "pause.fill") }

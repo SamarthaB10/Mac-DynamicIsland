@@ -68,7 +68,7 @@ struct IslandView: View {
   }
 
   private var expandedContent: some View {
-    VStack(spacing: 10) {
+    VStack(spacing: model.musicArtworkFocused && model.tab == .music ? 6 : 10) {
       ZStack {
         Group {
           switch model.tab {
@@ -97,7 +97,7 @@ struct IslandView: View {
         islandControls
       }.frame(height: 28)
     }
-    .padding(16)
+    .padding(model.musicArtworkFocused && model.tab == .music ? 12 : 16)
   }
   private var islandControls: some View {
     Group {
@@ -146,7 +146,7 @@ struct IslandView: View {
         if tab == .files { model.openForKeyboard?() }
       } label: {
         Image(systemName: tab == .music ? "music.note" : tab == .files ? "folder" : "list.bullet.rectangle")
-          .frame(width: 32, height: 28)
+          .frame(width: model.musicArtworkFocused && model.tab == .music ? 28 : 32, height: 28)
           .background(model.tab == tab ? .white.opacity(0.15) : .clear, in: RoundedRectangle(cornerRadius: 7))
       }
       .buttonStyle(IslandIconButtonStyle())

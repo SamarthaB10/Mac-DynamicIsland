@@ -22,7 +22,6 @@ final class IslandModel: ObservableObject {
   let activities = ActivityStore()
   let timer = CountdownTimer()
   private var timerActivity: UUID?
-  private var timerSubscription: AnyCancellable?
   let hubFiles = HubFileStore()
   @Published var hubView = HubSection.files
   @Published private(set) var savedItems: [SavedItem] = []
@@ -65,7 +64,7 @@ final class IslandModel: ObservableObject {
   var contentSize: CGSize {
     if tab == .files { return Self.hubSize }
     if tab == .music && musicArtworkFocused {
-      return CGSize(width: 360, height: 300)
+      return CGSize(width: 272, height: 208)
     }
     return CGSize(
       width: Self.expandedSize.width,
@@ -102,10 +101,7 @@ final class IslandModel: ObservableObject {
       savedItems = try textStore.load()
       textStoreLoaded = true
     } catch { textError = "Saved Text could not be loaded. Existing data was kept. \(error.localizedDescription)" }
-    timer.onExpiry = { [weak self] in self?.updateTimerActivity() }
-    timerSubscription = timer.$state.combineLatest(timer.$remaining)
-      .receive(on: RunLoop.main)
-      .sink { [weak self] _, _ in self?.updateTimerActivity() }
+    timer.onChange = { [weak self] in self?.updateTimerActivity() }
     if UserDefaults.standard.bool(forKey: "islandHidden") { send(11) }
     audioSubscription = audio.$name.removeDuplicates().dropFirst()
       .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
@@ -217,10 +213,8 @@ final class IslandModel: ObservableObject {
         }
       }
       guard let id = timerActivity else { return }
-      let seconds = Int(ceil(timer.remaining))
-      let remaining = String(format: "%02d:%02d", seconds / 60, seconds % 60)
-      activities.update(id, progress: timer.duration > 0 ? timer.remaining / timer.duration : nil,
-        title: "Timer · \(remaining)", detail: timer.state == .paused ? "Paused" : "Time remaining")
+      activities.update(id, progress: timer.duration > 0 ? 1 - timer.remaining / timer.duration : nil,
+        title: "Timer · \(timer.remainingText)", detail: timer.state == .paused ? "Paused" : "Time remaining")
     case .expired, .idle:
       guard let id = timerActivity else { return }
       activities.finish(id, state: timer.state == .expired ? .succeeded : .cancelled,

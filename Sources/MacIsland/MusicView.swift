@@ -17,9 +17,9 @@ struct MusicView: View {
   }
 
   var body: some View {
-    VStack(spacing: artworkFocused ? 8 : 12) {
+    VStack(spacing: artworkFocused ? 5 : 12) {
       if artworkFocused {
-        cover(size: 128)
+        cover(size: 64)
           .frame(maxWidth: .infinity)
         songDetails(centered: true)
       } else {
@@ -40,6 +40,7 @@ struct MusicView: View {
           Spacer()
           nextButton
           Spacer()
+          devicesButton
         }.frame(height: 28)
       if !media.hasTrack {
           Button { media.openPlayer() } label: {
@@ -84,7 +85,7 @@ struct MusicView: View {
   private var progress: some View {
     TimelineView(.animation(minimumInterval: 1, paused: !media.playing)) { context in
       let elapsed = scrub ?? media.elapsed(at: context.date)
-      HStack(spacing: 7) {
+      HStack(spacing: artworkFocused ? 4 : 7) {
         Text(time(elapsed)).frame(width: 29, alignment: .leading)
         SongProgress(
           value: elapsed, duration: media.duration, enabled: media.hasTrack && !media.busy,

@@ -13,6 +13,12 @@ final class CountdownTimer: ObservableObject {
   private var deadline: Date?
   private var task: Task<Void, Never>?
   var onExpiry: (() -> Void)?
+  var onChange: (() -> Void)?
+
+  var remainingText: String {
+    let value = Int(ceil(remaining))
+    return String(format: "%02d:%02d", value / 60, value % 60)
+  }
 
   init(now: @escaping () -> Date = Date.init, automaticallyUpdates: Bool = true) {
     self.now = now
@@ -20,13 +26,14 @@ final class CountdownTimer: ObservableObject {
   }
 
   func start(seconds: TimeInterval) {
-    guard seconds.isFinite, seconds > 0 else { return }
+    guard seconds.isFinite, seconds > 0, seconds <= 599_999 else { return }
     task?.cancel()
     duration = seconds
     remaining = seconds
     deadline = now().addingTimeInterval(seconds)
     state = .running
     scheduleUpdates()
+    onChange?()
   }
 
   func update() {
@@ -37,7 +44,10 @@ final class CountdownTimer: ObservableObject {
       state = .expired
       task?.cancel()
       task = nil
+      onChange?()
       onExpiry?()
+    } else {
+      onChange?()
     }
   }
 
@@ -48,6 +58,7 @@ final class CountdownTimer: ObservableObject {
     state = .paused
     task?.cancel()
     task = nil
+    onChange?()
   }
 
   func resume() {
@@ -55,6 +66,7 @@ final class CountdownTimer: ObservableObject {
     deadline = now().addingTimeInterval(remaining)
     state = .running
     scheduleUpdates()
+    onChange?()
   }
 
   func cancel() {
@@ -64,6 +76,7 @@ final class CountdownTimer: ObservableObject {
     remaining = 0
     duration = 0
     state = .idle
+    onChange?()
   }
 
   private func scheduleUpdates() {
