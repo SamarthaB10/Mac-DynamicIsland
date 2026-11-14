@@ -2,15 +2,23 @@ import Foundation
 
 struct SavedItem: Codable, Identifiable {
   let id: UUID
-  let text: String
+  var text: String
   var title: String?
 
   var webURL: URL? {
-    guard !text.contains(where: { $0.isWhitespace }),
-      let parts = URLComponents(string: text),
+    let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !value.isEmpty, !value.contains(where: { $0.isWhitespace }) else { return nil }
+    let explicitScheme = value.contains("://")
+    guard let parts = URLComponents(string: explicitScheme ? value : "https://" + value),
       ["http", "https"].contains(parts.scheme?.lowercased() ?? ""),
-      let host = parts.host, !host.isEmpty, let url = parts.url
-    else { return nil }
+      let host = parts.host, !host.isEmpty, let url = parts.url else { return nil }
+    if !explicitScheme {
+      let labels = host.split(separator: ".", omittingEmptySubsequences: false)
+      guard parts.user == nil, parts.password == nil, labels.count >= 2,
+        labels.allSatisfy({ !$0.isEmpty }),
+        let suffix = labels.last, suffix.count >= 2, suffix.allSatisfy({ $0.isLetter })
+      else { return nil }
+    }
     return url
   }
 }

@@ -1,3 +1,17 @@
+## Saved Text rich rows — 2026-11-13
+
+Saved Text now has rich rows with an icon, title, text preview, Copy, and More. Selection uses the existing black, white, and gray theme. The list shows three rows before scrolling. The selected text and its copy button stay below the list. Existing save, paste, title, order, open, and remove operations keep the same storage format.
+
+Link icons are read from the saved page's HTML, then from its final site's `/favicon.ico` if needed. Requests have time and byte limits. The loader keeps small bitmap icons in a bounded memory cache. A link symbol remains if loading fails. No new dependency was added.
+
+A separate native SwiftUI window rendered the actual SavedTextView source with sample data and a temporary model. The three-row layout, selection border, text preview, and copy controls were inspected in its image. Live icon requests returned images for GitHub, YouTube, and LinkedIn. This check did not use or change the user's saved text. It did not verify the installed app, pointer behavior, keyboard navigation, VoiceOver, or persistence through a restart.
+
+The final host app build and strict signature verification passed. The existing seven activity checks and countdown checks passed. Cargo completed with zero tests. Standards and design reviews found a skipped favicon fallback and shared menu-state ownership; both were corrected. No unit or integration tests were added.
+
+Follow-up: the selected preview has a pencil control and each row's More menu has Edit text. Save text updates the same entry and keeps its title, ID, and order. Cancel keeps the original text. Save errors keep the edit open. Editing protects the island from automatic closing. Domain links without a scheme use HTTPS for icon lookup and Open URL; plain names and email addresses remain text. Outer whitespace is ignored only for link detection.
+
+The branch build was launched in the actual Dynamic Island. Its native accessibility tree showed the rich rows, preview, and edit controls. A temporary typed sample was used to inspect the composer; direct Save verification was interrupted by repeated native-tool state-change errors. A read of the saved store confirmed that no temporary sample entry was saved. Samartha then confirmed that the running change works. Native automated Save/Cancel and restart-persistence checks remain incomplete. The installed Applications copy was not replaced. The final follow-up host build, strict signature check, activity checks, and timer checks passed. Both source review axes found a domain-with-port case; it was corrected before the final build.
+
 ## Compact Saved Text follow-up: 2026-11-13
 
 Work why: Remove unused space from the selected-text shelf while keeping the action bar clear of scrolling.
