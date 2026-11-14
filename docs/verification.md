@@ -1,5 +1,16 @@
 ## Compact Saved Text follow-up: 2026-11-13
 
+
+## Saved Text rich rows — 2026-11-13
+
+Saved Text now has rich rows with an icon, title, text preview, Copy, and More. Selection uses the existing black, white, and gray theme. The list shows three rows before scrolling. The selected text and its copy button stay below the list. Existing save, paste, title, order, open, and remove operations keep the same storage format.
+
+Link icons are read from the saved page's HTML, then from its final site's `/favicon.ico` if needed. Requests have time and byte limits. The loader keeps small bitmap icons in a bounded memory cache. A link symbol remains if loading fails. No new dependency was added.
+
+A separate native SwiftUI window rendered the actual SavedTextView source with sample data and a temporary model. The three-row layout, selection border, text preview, and copy controls were inspected in its image. Live icon requests returned images for GitHub, YouTube, and LinkedIn. This check did not use or change the user's saved text. It did not verify the installed app, pointer behavior, keyboard navigation, VoiceOver, or persistence through a restart.
+
+The final host app build and strict signature verification passed. The existing seven activity checks and countdown checks passed. Cargo completed with zero tests. Standards and design reviews found a skipped favicon fallback and shared menu-state ownership; both were corrected. No unit or integration tests were added.
+
 Work why: Remove unused space from the selected-text shelf while keeping the action bar clear of scrolling.
 
 The content width is 360 points instead of the shared 480-point file tray width. Height follows up to three visible rows, composer, title editing, detail expansion, and errors. Paste and Add now share the view-picker row. Repeated headings, selected-title text, and row snippets were removed. Copy, More, and Remove remain outside the list and preview scroll areas.

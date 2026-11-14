@@ -63,13 +63,13 @@ final class IslandModel: ObservableObject {
 
   static let expandedSize = CGSize(width: 408, height: 216)
   static let hubSize = CGSize(width: 480, height: 360)
+  static let savedTextMaxHeight: CGFloat = 460
   var contentSize: CGSize {
     if tab == .files {
       if hubView == .files { return Self.hubSize }
-      let rows = min(savedItems.count, 3)
       let height: CGFloat = savedTextComposing ? 300 :
-        (savedItems.isEmpty ? 190 : 230 + CGFloat(rows) * 32)
-      return CGSize(width: 360, height: min(360, height
+        (savedItems.isEmpty ? 190 : 204 + SavedTextLayout.listHeight(count: savedItems.count))
+      return CGSize(width: 360, height: min(Self.savedTextMaxHeight, height
         + (savedTextDetailExpanded ? 45 : 0) + (savedTextEditingTitle ? 28 : 0)
         + (textError == nil ? 0 : 32)))
     }
@@ -89,7 +89,7 @@ final class IslandModel: ObservableObject {
   var canvasSize: CGSize {
     CGSize(
       width: max(Self.hubSize.width, compactSize.width) + 48,
-      height: Self.hubSize.height + notchHeight + 48)
+      height: max(Self.hubSize.height, Self.savedTextMaxHeight) + notchHeight + 48)
   }
   static let canvasInset: CGFloat = 24
 

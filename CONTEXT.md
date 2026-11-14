@@ -13,3 +13,6 @@ _Avoid_: Drive download, which stays on disk.
 
 **Accepted drop**:
 An outgoing drag that another app accepted. Acceptance does not mean that the receiving app has finished copying the file.
+
+**Saved text**:
+A text entry or complete web link kept on this Mac until the user removes it. It can have an optional title.
