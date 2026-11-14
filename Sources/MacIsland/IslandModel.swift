@@ -6,7 +6,7 @@ enum IslandTab: String, CaseIterable {
   case music = "Now Playing"
   case files = "Hub"
   case devices = "Devices"
-  case activities = "Activity"
+  case timer = "Timer"
 }
 
 @MainActor
@@ -19,6 +19,8 @@ final class IslandModel: ObservableObject {
   @Published var tab = IslandTab.music
   @Published var musicArtworkFocused = false
   let activities = ActivityStore()
+  let timer = CountdownTimer()
+  private var timerActivity: UUID?
   let hubFiles = HubFileStore()
   @Published var hubView = HubSection.files
   @Published private(set) var savedItems: [SavedItem] = []
@@ -30,6 +32,9 @@ final class IslandModel: ObservableObject {
   private var textStoreLoaded = false
   @Published private(set) var dropTargeted = false
   @Published private(set) var isChoosingFiles = false {
+    didSet { updateFileInteraction() }
+  }
+  var menuOpen = false {
     didSet { updateFileInteraction() }
   }
   var configuringImages = false {
@@ -58,7 +63,7 @@ final class IslandModel: ObservableObject {
   var contentSize: CGSize {
     if tab == .files { return Self.hubSize }
     if tab == .music && musicArtworkFocused {
-      return CGSize(width: 360, height: 300)
+      return CGSize(width: 272, height: 208)
     }
     return CGSize(
       width: Self.expandedSize.width,
@@ -95,6 +100,7 @@ final class IslandModel: ObservableObject {
       savedItems = try textStore.load()
       textStoreLoaded = true
     } catch { textError = "Saved Text could not be loaded. Existing data was kept. \(error.localizedDescription)" }
+    timer.onChange = { [weak self] in self?.updateTimerActivity() }
     if UserDefaults.standard.bool(forKey: "islandHidden") { send(11) }
     audioSubscription = audio.$name.removeDuplicates().dropFirst()
       .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
@@ -119,7 +125,7 @@ final class IslandModel: ObservableObject {
   private var now: UInt64 { DispatchTime.now().uptimeNanoseconds / 1_000_000 }
 
   private func updateFileInteraction() {
-    send(isChoosingFiles || configuringImages || connectingSpotify || draggingFile ? 5 : 6)
+    send(isChoosingFiles || configuringImages || connectingSpotify || draggingFile || menuOpen ? 5 : 6)
   }
 
   // Rust owns open/close policy. Swift schedules only its next requested deadline.
@@ -186,10 +192,33 @@ final class IslandModel: ObservableObject {
   func openActivity(_ activity: IslandActivity) {
     switch activity.kind {
     case .upload, .download: openGoogleDrive?()
+    case .timer:
+      tab = .timer
+      openForKeyboard?()
     case .processing:
       tab = .files
       hubView = .files
       openForKeyboard?()
+    }
+  }
+
+  // Timer updates change activity data only; they never reveal or navigate the island.
+  private func updateTimerActivity() {
+    switch timer.state {
+    case .running, .paused:
+      if timerActivity == nil {
+        timerActivity = activities.start(kind: .timer, title: "Timer") { [weak self] in
+          self?.timer.cancel()
+        }
+      }
+      guard let id = timerActivity else { return }
+      activities.update(id, progress: timer.duration > 0 ? 1 - timer.remaining / timer.duration : nil,
+        title: "Timer · \(timer.remainingText)", detail: timer.state == .paused ? "Paused" : "Time remaining")
+    case .expired, .idle:
+      guard let id = timerActivity else { return }
+      activities.finish(id, state: timer.state == .expired ? .succeeded : .cancelled,
+        detail: timer.state == .expired ? "Timer finished" : "Timer cancelled")
+      timerActivity = nil
     }
   }
 

@@ -5,27 +5,19 @@ struct IslandView: View {
   @ObservedObject var model: IslandModel
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Namespace private var selection
-  @State private var contentExpanded = false
+  @State private var moreOpen = false
 
   private var motion: Animation? {
-    reduceMotion ? nil : .spring(response: 0.36, dampingFraction: 0.86)
+    reduceMotion ? nil : .smooth(duration: 0.26, extraBounce: 0)
   }
 
   var body: some View {
     ZStack(alignment: .top) {
       ZStack(alignment: .top) {
-        if contentExpanded {
+        if model.expanded {
           expandedContent
             .frame(width: model.contentSize.width, height: model.contentSize.height)
             .padding(.top, max(0, model.notchHeight - 6))
-            .overlay(alignment: .top) {
-              HStack {
-                Spacer(minLength: model.notchWidth)
-                WeatherBadge(weather: model.weather)
-              }
-              .padding(.horizontal, 18)
-              .frame(height: model.notchHeight)
-            }
             .allowsHitTesting(model.expanded)
             .accessibilityHidden(!model.expanded)
             .transition(.opacity)
@@ -35,7 +27,7 @@ struct IslandView: View {
             media: model.media, audio: model.audio, activities: model.activities, notice: model.connectionNotice,
             notchWidth: model.notchWidth,
             open: { model.tab = .music; model.openForKeyboard?() },
-            openActivity: model.openActivity
+            openActivity: { _ in model.tab = .files; model.hubView = .files; model.expand() }
           )
           .frame(width: model.compactSize.width, height: model.compactSize.height)
           .allowsHitTesting(!model.expanded)
@@ -67,19 +59,16 @@ struct IslandView: View {
     .tint(.white)
     .font(.system(size: 12))
     .onExitCommand { model.collapse(force: true) }
-    .task(id: model.expanded) {
-      let expanded = model.expanded
-      if expanded && !reduceMotion {
-        try? await Task.sleep(for: .milliseconds(90))
-      }
-      guard !Task.isCancelled else { return }
-      withAnimation(reduceMotion ? nil : .easeOut(duration: 0.14)) { contentExpanded = expanded }
+    .onChange(of: model.expanded) { _, expanded in
+      if !expanded { closeMore() }
     }
-    .onChange(of: reduceMotion) { _, _ in contentExpanded = model.expanded }
+    .onChange(of: model.visible) { _, visible in
+      if !visible { closeMore() }
+    }
   }
 
   private var expandedContent: some View {
-    VStack(spacing: 10) {
+    VStack(spacing: model.musicArtworkFocused && model.tab == .music ? 6 : 10) {
       ZStack {
         Group {
           switch model.tab {
@@ -89,41 +78,39 @@ struct IslandView: View {
               showDevices: { model.tab = .devices },
               prepareSignIn: { model.connectingSpotify = true; model.openForKeyboard?() },
               finishedSignIn: { model.connectingSpotify = false; model.openForKeyboard?() })
-              .overlay(alignment: .leading) {
-                if model.musicArtworkFocused {
-                  VStack(alignment: .leading, spacing: 14) {
-                    navigationTabs
-                    HStack(spacing: 2) { islandControls }
-                  }.frame(width: 76, alignment: .leading).padding(.bottom, 63)
-                }
-              }
+          case .timer: CountdownTimerView(timer: model.timer)
           case .files: HubView(model: model)
           case .devices: DevicesView(audio: model.audio)
-          case .activities: ActivityListView(activities: model.activities, open: model.openActivity)
           }
         }
         .id(model.tab)
         .transition(reduceMotion ? .identity : .opacity)
       }.frame(maxWidth: .infinity, maxHeight: .infinity)
       HStack(spacing: 3) {
-        if model.tab != .music || !model.musicArtworkFocused {
-          navigationTabs
-          Spacer(minLength: 2)
-          islandControls
-        }
+        navigationTabs
+        Spacer(minLength: 2)
+        islandControls
       }.frame(height: 28)
     }
-    .padding(16)
+    .padding(model.musicArtworkFocused && model.tab == .music ? 12 : 16)
   }
   private var islandControls: some View {
     Group {
-      Button {
-        model.togglePin()
-      } label: {
-        Image(systemName: model.pinned ? "pin.fill" : "pin")
-          .frame(width: 24, height: 28).foregroundStyle(.white.opacity(model.pinned ? 1 : 0.6))
-      }.buttonStyle(IslandIconButtonStyle()).help(model.pinned ? "Allow automatic close" : "Keep open")
-        .accessibilityLabel(model.pinned ? "Unpin island" : "Pin island")
+      Button { moreOpen.toggle() } label: {
+        Image(systemName: "ellipsis.circle").frame(width: 28, height: 28)
+      }
+      .buttonStyle(IslandIconButtonStyle()).help("More").accessibilityLabel("More")
+      .popover(isPresented: $moreOpen) {
+        VStack(alignment: .leading, spacing: 8) {
+          Button(model.pinned ? "Allow automatic close" : "Keep open") { model.togglePin(); moreOpen = false }
+          Button { model.tab = .timer; moreOpen = false; model.openForKeyboard?() } label: { Label("Timer", systemImage: "timer") }
+          Button("Audio output") { model.tab = .devices; moreOpen = false }
+          Button("Saved Text") { model.tab = .files; model.hubView = .savedText; moreOpen = false; model.openForKeyboard?() }
+          WeatherBadge(weather: model.weather)
+        }.padding(12)
+      }
+      .onChange(of: moreOpen) { _, open in model.menuOpen = open }
+      .onDisappear { closeMore() }
       Button {
         model.setVisible(false)
       } label: {
@@ -141,29 +128,24 @@ struct IslandView: View {
     }
   }
 
+  private func closeMore() {
+    moreOpen = false
+    model.menuOpen = false
+  }
+
   private var navigationTabs: some View {
-    ForEach(IslandTab.allCases, id: \.self) { tab in
+    ForEach([IslandTab.music, .files], id: \.self) { tab in
       Button {
         model.tab = tab
+        if tab == .music { model.musicArtworkFocused = false }
         if tab == .files { model.openForKeyboard?() }
-        if tab == .devices {
-          model.weather.refreshIfNeeded()
-        }
       } label: {
-        Text(tab.rawValue)
-          .font(.system(size: model.tab == .music && model.musicArtworkFocused ? 9.5 : 10.5, weight: .semibold))
-          .lineLimit(1)
-          .fixedSize(horizontal: true, vertical: false)
-          .padding(.horizontal, model.tab == .music && model.musicArtworkFocused ? 0 : 9)
-          .padding(.vertical, model.tab == .music && model.musicArtworkFocused ? 3 : 6)
-          .background {
-            if model.tab == tab && !(model.tab == .music && model.musicArtworkFocused) {
-              Capsule().fill(.white.opacity(0.15)).matchedGeometryEffect(
-                id: "tab", in: selection)
-            }
-          }
+        Image(systemName: tab == .music ? "music.note" : "folder")
+          .frame(width: model.musicArtworkFocused && model.tab == .music ? 28 : 32, height: 28)
+          .background(model.tab == tab ? .white.opacity(0.15) : .clear, in: RoundedRectangle(cornerRadius: 7))
       }
-      .buttonStyle(.plain)
+      .buttonStyle(IslandIconButtonStyle())
+      .help(tab.rawValue).accessibilityLabel(tab.rawValue)
       .accessibilityAddTraits(model.tab == tab ? .isSelected : [])
     }
   }

@@ -17,19 +17,10 @@ struct MusicView: View {
   }
 
   var body: some View {
-    VStack(spacing: artworkFocused ? 8 : 12) {
+    VStack(spacing: artworkFocused ? 5 : 12) {
       if artworkFocused {
-        cover(size: 128)
+        cover(size: 64)
           .frame(maxWidth: .infinity)
-          .overlay(alignment: .trailing) {
-            VStack(spacing: 4) {
-              previousButton
-              playPauseButton
-              nextButton
-              saveButton
-              devicesButton
-            }
-          }
         songDetails(centered: true)
       } else {
         HStack(spacing: 14) {
@@ -40,8 +31,7 @@ struct MusicView: View {
         }
       }
       progress
-      if !artworkFocused {
-        HStack {
+      HStack {
           saveButton
           Spacer()
           previousButton
@@ -52,11 +42,10 @@ struct MusicView: View {
           Spacer()
           devicesButton
         }.frame(height: 28)
-        if !media.hasTrack {
+      if !media.hasTrack {
           Button { media.openPlayer() } label: {
             SpotifyMark().frame(width: 14, height: 14).frame(width: 28, height: 20)
           }.buttonStyle(.plain).accessibilityLabel("Open Spotify").help("Open Spotify")
-        }
       }
       if let error = visibleError {
         Button { media.command() } label: {
@@ -69,7 +58,7 @@ struct MusicView: View {
 
   private func cover(size: CGFloat) -> some View {
     Button {
-      withAnimation(reduceMotion ? nil : .spring(response: 0.36, dampingFraction: 0.86)) {
+      withAnimation(reduceMotion ? nil : .smooth(duration: 0.26, extraBounce: 0)) {
         artworkFocused.toggle()
       }
     } label: {
@@ -96,7 +85,7 @@ struct MusicView: View {
   private var progress: some View {
     TimelineView(.animation(minimumInterval: 1, paused: !media.playing)) { context in
       let elapsed = scrub ?? media.elapsed(at: context.date)
-      HStack(spacing: 7) {
+      HStack(spacing: artworkFocused ? 4 : 7) {
         Text(time(elapsed)).frame(width: 29, alignment: .leading)
         SongProgress(
           value: elapsed, duration: media.duration, enabled: media.hasTrack && !media.busy,

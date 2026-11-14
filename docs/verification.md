@@ -1,3 +1,21 @@
+## Quiet native UI states: 2026-11-13
+
+Work why: Reduce competing controls in music and keep the playing island small at the notch.
+
+The normal player, centered artwork, and activity list are states of one native interface. Feature navigation uses SF Symbols with help and accessibility names. The artwork state has no side columns. Activity keeps an observed music strip. More provides less frequent controls; Hide and Collapse remain direct actions. Picker, drag, sign-in, and menu protection remain in use. Pointer exit uses the rounded visible surface and a 700 ms grace interval.
+
+The first source reviews found a stale music strip and possible menu protection after its view was removed. The correction observes the media controller in the strip and clears menu protection when the controls disappear or the island hides/closes. A Spec review also identified transparent-corner hover and uncertain content/shape timing. The correction uses the rounded surface and removes the delayed content task. Shape motion uses no extra bounce. These changes still require native verification below; source does not prove smooth motion.
+
+The host build and all seven existing public ActivityStore checks pass. Controlled-clock countdown checks pass for start, pause, resume, cancel and expiry. No new UI or Rust test boundary was added. One concurrent build failed because a shared source file changed during compilation; the final build was run after source changes and passed.
+
+Final source reviews found missing close protection in Saved Text More and a missing music strip in the combined tray. The correction uses a protected popover for saved-item actions and adds the observed music strip above live work. The timer review found a queued cancel/restart race, unbounded duration conversion, and a remaining-versus-completed progress mismatch. Timer callbacks now run synchronously, accepted duration is bounded, time formatting is shared, and activity progress means elapsed work. The public countdown checks were run after these corrections.
+
+The latest Saved Text shelf keeps Copy, Remove and More outside its scrolling list. The composer can hide without clearing its draft; explicit Cancel clears it. The artwork content panel changed from 360 by 300 to 272 by 208 points (about 52 percent of the former area). Audio output is directly available from Music. Files and live activities now share one navigation icon.
+
+The corrected bundle was installed at `/Applications/Mac Island.app` after an explicit user request. A backup is at `~/Library/Application Support/Mac Island Backups/tray-shelf-20261113-221816/Mac Island.app`. Built and installed bundle signature checks pass. Their executables compare equal. The installed executable SHA-256 is `127f0ea62ad1654494d8fbbbbd8936ff28d918a768b32df6161f7976556476d1`.
+
+The installed process was observed. A native accessibility read showed the selected Saved Text row, separate preview scroll area, fixed Copy/More/Remove controls, and the protected More popover. No saved user entry was removed for verification. Native reads and capture remain unreliable: launch reads returned `Computer Use server error -10005: timeoutReached`, and a screenshot call timed out and reset the kernel. These results prevent final screenshots and a complete pointer/motion/keyboard/accessibility check. They do not prove smooth motion, notch fit, drag/drop delivery, cloud transfer behavior, VoiceOver speech, or reduced motion in the running app. No cloud test upload, new permission, merge or release was performed.
+
 # Verification
 
 ## Native activity engine: 2026-11-13
