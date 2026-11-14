@@ -14,6 +14,7 @@ struct HubView: View {
         ForEach(HubSection.allCases, id: \.self) { Text($0.rawValue).tag($0) }
       }.pickerStyle(.segmented).labelsHidden()
       if model.hubView == .files {
+        ActivityMusicStrip(media: model.media)
         ActivityJobStrip(activities: model.activities, open: model.openActivity, menuOpen: { model.menuOpen = $0 })
         HubFilesView(model: model, files: model.hubFiles)
       } else {
@@ -39,6 +40,7 @@ private struct SavedTextView: View {
   @State private var editingTitle = false
   @State private var title = ""
   @State private var expanded = false
+  @State private var showingActions = false
 
   private var selected: SavedItem? {
     model.savedItems.first { $0.id == selectedID } ?? model.savedItems.first
@@ -114,18 +116,32 @@ private struct SavedTextView: View {
           Button { model.copyText(item) } label: {
             Image(systemName: "doc.on.doc").frame(width: 30, height: 30).contentShape(Rectangle())
           }.accessibilityLabel("Copy saved text").help("Copy saved text")
-          Menu {
-            Button("Edit title") { title = item.title ?? ""; editingTitle = true }
-            Button("Move up") { model.moveText(item.id, offset: -1) }
-              .disabled(model.savedItems.first?.id == item.id)
-            Button("Move down") { model.moveText(item.id, offset: 1) }
-              .disabled(model.savedItems.last?.id == item.id)
-            Button(expanded ? "Collapse text" : "Expand text") { expanded.toggle() }
-            if item.webURL != nil { Button("Open URL") { model.openText(item) } }
-          } label: {
+          Button { showingActions.toggle() } label: {
             Image(systemName: "ellipsis").frame(width: 30, height: 30).contentShape(Rectangle())
-          }.menuStyle(.borderlessButton).fixedSize()
-            .accessibilityLabel("More saved text actions").help("More saved text actions")
+          }
+          .accessibilityLabel("More saved text actions").help("More saved text actions")
+          .popover(isPresented: $showingActions) {
+            VStack(alignment: .leading, spacing: 8) {
+              Button("Edit title") {
+                title = item.title ?? ""
+                editingTitle = true
+                showingActions = false
+              }
+              Button("Move up") { model.moveText(item.id, offset: -1); showingActions = false }
+                .disabled(model.savedItems.first?.id == item.id)
+              Button("Move down") { model.moveText(item.id, offset: 1); showingActions = false }
+                .disabled(model.savedItems.last?.id == item.id)
+              Button(expanded ? "Collapse text" : "Expand text") {
+                expanded.toggle()
+                showingActions = false
+              }
+              if item.webURL != nil {
+                Button("Open URL") { model.openText(item); showingActions = false }
+              }
+            }.padding(12)
+          }
+          .onChange(of: showingActions) { _, open in model.menuOpen = open }
+          .onDisappear { showingActions = false; model.menuOpen = false }
           Button { model.removeText(item); editingTitle = false } label: {
             Image(systemName: "xmark").frame(width: 30, height: 30).contentShape(Rectangle())
           }.accessibilityLabel("Remove saved text entry").help("Remove saved text entry")
