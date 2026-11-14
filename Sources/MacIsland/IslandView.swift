@@ -27,7 +27,7 @@ struct IslandView: View {
             media: model.media, audio: model.audio, activities: model.activities, notice: model.connectionNotice,
             notchWidth: model.notchWidth,
             open: { model.tab = .music; model.openForKeyboard?() },
-            openActivity: { _ in model.tab = .activities; model.expand() }
+            openActivity: { _ in model.tab = .files; model.hubView = .files; model.expand() }
           )
           .frame(width: model.compactSize.width, height: model.compactSize.height)
           .allowsHitTesting(!model.expanded)
@@ -81,11 +81,6 @@ struct IslandView: View {
           case .timer: CountdownTimerView(timer: model.timer)
           case .files: HubView(model: model)
           case .devices: DevicesView(audio: model.audio)
-          case .activities:
-            VStack(spacing: 8) {
-              ActivityMusicStrip(media: model.media)
-              ActivityListView(activities: model.activities, open: model.openActivity)
-            }
           }
         }
         .id(model.tab)
@@ -139,13 +134,13 @@ struct IslandView: View {
   }
 
   private var navigationTabs: some View {
-    ForEach([IslandTab.music, .files, .activities], id: \.self) { tab in
+    ForEach([IslandTab.music, .files], id: \.self) { tab in
       Button {
         model.tab = tab
         if tab == .music { model.musicArtworkFocused = false }
         if tab == .files { model.openForKeyboard?() }
       } label: {
-        Image(systemName: tab == .music ? "music.note" : tab == .files ? "folder" : "list.bullet.rectangle")
+        Image(systemName: tab == .music ? "music.note" : "folder")
           .frame(width: model.musicArtworkFocused && model.tab == .music ? 28 : 32, height: 28)
           .background(model.tab == tab ? .white.opacity(0.15) : .clear, in: RoundedRectangle(cornerRadius: 7))
       }

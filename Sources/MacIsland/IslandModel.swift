@@ -6,7 +6,6 @@ enum IslandTab: String, CaseIterable {
   case music = "Now Playing"
   case files = "Hub"
   case devices = "Devices"
-  case activities = "Activity"
   case timer = "Timer"
 }
 

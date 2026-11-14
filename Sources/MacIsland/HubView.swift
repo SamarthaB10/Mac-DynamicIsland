@@ -14,6 +14,7 @@ struct HubView: View {
         ForEach(HubSection.allCases, id: \.self) { Text($0.rawValue).tag($0) }
       }.pickerStyle(.segmented).labelsHidden()
       if model.hubView == .files {
+        ActivityJobStrip(activities: model.activities, open: model.openActivity, menuOpen: { model.menuOpen = $0 })
         HubFilesView(model: model, files: model.hubFiles)
       } else {
         SavedTextView(model: model)
