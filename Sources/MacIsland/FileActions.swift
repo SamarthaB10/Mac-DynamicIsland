@@ -17,6 +17,16 @@ enum FileAction {
   case imagePDF
   case compressPDF
   case compressImage(format: ImageOutput, maximumBytes: Int)
+
+  var activityTitle: String {
+    switch self {
+    case .zip: "Creating ZIP"
+    case .image: "Converting images"
+    case .imagePDF: "Creating PDFs"
+    case .compressPDF: "Compressing PDFs"
+    case .compressImage: "Compressing images"
+    }
+  }
 }
 
 struct FileActionResult {
