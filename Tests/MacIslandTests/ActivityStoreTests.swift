@@ -48,7 +48,8 @@ struct ActivityStoreChecks {
     try require(store.primary?.id == first, "A group must keep its first job until brought forward")
     try require(store.ordered.count == 2, "Grouped jobs must remain available in the full list")
     store.bringForward(second)
-    try require(store.primary?.id == second, "An explicit selection must bring a grouped job forward")
+    try require(
+      store.primary?.id == second, "An explicit selection must bring a grouped job forward")
   }
 
   static func cancelWaitsForTheAdapterAndRunsOnlyOnce() throws {

@@ -39,7 +39,8 @@ final class HubFileStore: ObservableObject {
   func receive(_ pasteboard: NSPasteboard) -> Bool { dropReceiver.receive(pasteboard) }
   func cleanup() { dropReceiver.cleanup() }
 
-  func add(_ urls: [URL], temporary: Bool = false) {
+  // Background results can add files without changing the user's current view.
+  func add(_ urls: [URL], temporary: Bool = false, reveal: Bool = true) {
     var missing = false
     for url in urls where url.isFileURL {
       let canonical = url.standardizedFileURL
@@ -51,7 +52,7 @@ final class HubFileStore: ObservableObject {
       if !files.contains(canonical) { files.append(canonical) }
     }
     error = missing ? "A file is no longer available." : nil
-    filesAdded?()
+    if reveal { filesAdded?() }
   }
 
   func showPreview(_ url: URL) {

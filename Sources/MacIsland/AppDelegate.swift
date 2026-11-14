@@ -67,6 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusItem: NSStatusItem!
   private var subscriptions = Set<AnyCancellable>()
   private var hovering = false
+  private var hiddenHoverArmed = false
   private var globalMouseMonitor: Any?
   private var localMouseMonitor: Any?
   private var visibilityTask: Task<Void, Never>?
@@ -158,6 +159,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let applicationItem = NSMenuItem()
     let applicationMenu = NSMenu()
     applicationMenu.addItem(item("Open Island", action: #selector(openIsland), key: "o"))
+    applicationMenu.addItem(item("Hide Island", action: #selector(hideIsland), key: "h"))
     applicationMenu.addItem(item("Keep Island Open", action: #selector(togglePin), key: "p"))
     applicationMenu.addItem(item("Add Files…", action: #selector(addFiles), key: ""))
     applicationMenu.addItem(.separator())
@@ -254,14 +256,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   // The transparent animation canvas must not block the apps behind it.
   private func updatePointer() {
-    guard model.visible, screen != nil else {
+    guard screen != nil else {
       panel.ignoresMouseEvents = true
       hovering = false
       return
     }
     let point = NSEvent.mouseLocation
-    let inside = islandFrame.contains(point)
     let nearNotch = notchOpeningFrame.contains(point)
+    guard model.visible else {
+      panel.ignoresMouseEvents = true
+      hovering = false
+      // Require an exit before re-entry, so Hide cannot immediately undo itself.
+      if !nearNotch { hiddenHoverArmed = true }
+      else if hiddenHoverArmed && NSEvent.pressedMouseButtons == 0 {
+        hiddenHoverArmed = false
+        model.setVisible(true)
+      }
+      return
+    }
+    hiddenHoverArmed = false
+    let inside = islandFrame.contains(point)
     let acceptsPointer = inside || (nearNotch && externalFileDrag && NSEvent.pressedMouseButtons & 1 != 0)
     if panel.ignoresMouseEvents != !acceptsPointer { panel.ignoresMouseEvents = !acceptsPointer }
     let nextHover = nearNotch || (model.expanded && inside)
@@ -336,8 +350,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   private func updateMenu() {
     let menu = NSMenu()
-    let visibility = item("Show Island", action: #selector(toggleVisibility), key: "")
-    visibility.state = model.visible ? .on : .off
+    let visibility = item(model.visible ? "Hide Island" : "Show Island", action: #selector(toggleVisibility), key: "")
     menu.addItem(visibility)
     menu.addItem(item("Open Island", action: #selector(openIsland), key: "o"))
     menu.addItem(item("Collapse Island", action: #selector(collapseIsland), key: ""))
@@ -376,6 +389,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     layout()
     NSApp.activate(ignoringOtherApps: true)
   }
+  @objc private func hideIsland() { model.setVisible(false) }
   @objc private func toggleVisibility() {
     model.setVisible(!model.visible)
     updateMenu()
@@ -393,7 +407,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     model.collapse(force: true)
     if driveWindow == nil {
       let drive = driveController ?? GoogleDriveController(hubFiles: model.hubFiles, activities: model.activities)
-      drive.receivedFile = { [weak self] url in self?.model.hubFiles.add([url]) }
+      drive.receivedFile = { [weak self] url in self?.model.hubFiles.add([url], reveal: false) }
       driveController = drive
       let window = NSWindow(
         contentRect: NSRect(x: 0, y: 0, width: 700, height: 520),

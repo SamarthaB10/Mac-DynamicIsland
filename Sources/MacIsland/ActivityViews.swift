@@ -57,10 +57,13 @@ struct ActivityListView: View {
         ForEach(activities.ordered) { activity in
           HStack(spacing: 10) {
             ActivityProgressRing(activity: activity)
-            Button { open(activity) } label: {
+            Button {
+              open(activity)
+            } label: {
               VStack(alignment: .leading, spacing: 4) {
                 Text(activity.title).font(.system(size: 11, weight: .semibold)).lineLimit(1)
-                Text(activity.detail).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(2)
+                Text(activity.detail).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(
+                  2)
                 if activity.state == .running, let progress = activity.progress {
                   ProgressView(value: progress).tint(.cyan)
                     .accessibilityLabel("Progress")
@@ -68,13 +71,17 @@ struct ActivityListView: View {
               }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
             }.buttonStyle(.plain).accessibilityLabel("Open \(activity.accessibilitySummary)")
             if activity.canCancel {
-              Button { activities.cancel(activity.id) } label: {
+              Button {
+                activities.cancel(activity.id)
+              } label: {
                 Image(systemName: "stop.circle").frame(width: 28, height: 28)
               }.buttonStyle(IslandIconButtonStyle())
                 .accessibilityLabel("Cancel \(activity.title)")
                 .help("Cancel \(activity.title)")
             } else if activity.state.isFinished {
-              Button { activities.dismiss(activity.id) } label: {
+              Button {
+                activities.dismiss(activity.id)
+              } label: {
                 Image(systemName: "xmark.circle").frame(width: 28, height: 28)
               }.buttonStyle(IslandIconButtonStyle())
                 .accessibilityLabel("Dismiss \(activity.title)")

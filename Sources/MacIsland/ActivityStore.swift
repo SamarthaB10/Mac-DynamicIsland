@@ -44,7 +44,8 @@ struct IslandActivity: Identifiable {
   }
 
   var accessibilitySummary: String {
-    let amount = state == .running ? progress.map { ", \(Int($0 * 100)) percent" } ?? ", progress unknown" : ""
+    let amount =
+      state == .running ? progress.map { ", \(Int($0 * 100)) percent" } ?? ", progress unknown" : ""
     return "\(title), \(detail)\(amount)"
   }
 }
@@ -78,9 +79,10 @@ final class ActivityStore: ObservableObject {
     priority: Int = 10, cancel: (() -> Void)? = nil
   ) -> UUID {
     let id = UUID()
-    activities.append(IslandActivity(
-      id: id, kind: kind, group: group, order: nextOrder, title: title,
-      priority: priority, canCancel: cancel != nil))
+    activities.append(
+      IslandActivity(
+        id: id, kind: kind, group: group, order: nextOrder, title: title,
+        priority: priority, canCancel: cancel != nil))
     nextOrder += 1
     cancelActions[id] = cancel
     return id
@@ -88,14 +90,16 @@ final class ActivityStore: ObservableObject {
 
   func update(_ id: UUID, progress: Double?, priority: Int? = nil, title: String? = nil) {
     guard let index = activities.firstIndex(where: { $0.id == id }),
-      activities[index].state == .running else { return }
+      activities[index].state == .running
+    else { return }
     activities[index].progress = progress.flatMap { $0.isFinite ? min(1, max(0, $0)) : nil }
     if let priority { activities[index].priority = priority }
     if let title { activities[index].title = title }
   }
 
   func update(_ id: UUID, completedBytes: Int64, totalBytes: Int64) {
-    let progress = totalBytes > 0 && completedBytes >= 0
+    let progress =
+      totalBytes > 0 && completedBytes >= 0
       ? Double(completedBytes) / Double(totalBytes) : nil
     update(id, progress: progress)
   }
@@ -112,7 +116,8 @@ final class ActivityStore: ObservableObject {
 
   func finish(_ id: UUID, state: ActivityState, detail: String, now: Date = Date()) {
     guard state.isFinished, let index = activities.firstIndex(where: { $0.id == id }),
-      !activities[index].state.isFinished else { return }
+      !activities[index].state.isFinished
+    else { return }
     let lifetime: TimeInterval = state == .failed ? 10 : 5
     activities[index].state = state
     activities[index].detail = detail
@@ -130,13 +135,17 @@ final class ActivityStore: ObservableObject {
   }
 
   func bringForward(_ id: UUID) {
-    guard let activity = activities.first(where: { $0.id == id }), let group = activity.group else { return }
+    guard let activity = activities.first(where: { $0.id == id }), let group = activity.group else {
+      return
+    }
     front[group] = id
     objectWillChange.send()
   }
 
   func dismiss(_ id: UUID) {
-    guard let activity = activities.first(where: { $0.id == id }), activity.state.isFinished else { return }
+    guard let activity = activities.first(where: { $0.id == id }), activity.state.isFinished else {
+      return
+    }
     activities.removeAll { $0.id == id }
     expiryTasks.removeValue(forKey: id)?.cancel()
     if let group = activity.group, front[group] == id { front.removeValue(forKey: group) }

@@ -21,6 +21,7 @@ final class DriveTransferProgress: NSObject, URLSessionDownloadDelegate, @unchec
   }
 
   func urlSession(
-    _ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL
+    _ session: URLSession, downloadTask: URLSessionDownloadTask,
+    didFinishDownloadingTo location: URL
   ) {}
 }

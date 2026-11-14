@@ -146,8 +146,14 @@ final class IslandModel: ObservableObject {
   }
 
   func setVisible(_ show: Bool) {
+    let restoring = show && !visible
     UserDefaults.standard.set(!show, forKey: "islandHidden")
     send(show ? 12 : 11)
+    if restoring {
+      // Hidden events are ignored by the core. Restore the current interaction flags.
+      updateFileInteraction()
+      send(dropTargeted ? 7 : 8)
+    }
   }
   func expand() { send(0) }
   func collapse(force: Bool = false) { send(force ? 4 : 9) }
@@ -263,14 +269,13 @@ final class IslandModel: ObservableObject {
         }
         return result
       }.value
-      self.hubFiles.add(result.files)
+      self.hubFiles.add(result.files, reveal: false)
       self.hubFiles.finishProcessing()
       self.activities.finish(activity, state: result.failures.isEmpty ? .succeeded : .failed,
         detail: result.failures.isEmpty ? "Saved to Downloads" : result.failures.joined(separator: "\n"))
       self.isChoosingFiles = false
       self.actionReport = "Saved \(result.files.count) file(s) to Downloads. These copies stay on this Mac."
         + (result.failures.isEmpty ? "" : "\nFailed:\n" + result.failures.joined(separator: "\n"))
-      self.openForKeyboard?()
     }
   }
 
@@ -346,13 +351,12 @@ final class IslandModel: ObservableObject {
         let result = await Task.detached(priority: .userInitiated) {
           FileActions.run(action, sources: sources, folder: folder)
         }.value
-        self.hubFiles.add(result.files)
+        self.hubFiles.add(result.files, reveal: false)
         self.hubFiles.selectedFiles.subtract(sources)
         self.hubFiles.finishProcessing()
         self.activities.finish(activity, state: result.failures.isEmpty ? .succeeded : .failed,
           detail: result.failures.isEmpty ? "Finished. See the Hub report." : result.failures.joined(separator: "\n"))
         self.isChoosingFiles = false
-        self.openForKeyboard?()
         self.actionReport = "Added \(result.files.count) result file(s) to the Hub."
           + (result.notes.isEmpty ? "" : "\n" + result.notes.joined(separator: "\n"))
           + (result.failures.isEmpty ? "" : "\nFailed:\n" + result.failures.joined(separator: "\n"))
