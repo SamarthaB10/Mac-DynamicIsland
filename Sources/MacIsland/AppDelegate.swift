@@ -278,7 +278,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let inside = islandFrame.contains(point)
     let acceptsPointer = inside || (nearNotch && externalFileDrag && NSEvent.pressedMouseButtons & 1 != 0)
     if panel.ignoresMouseEvents != !acceptsPointer { panel.ignoresMouseEvents = !acceptsPointer }
-    let nextHover = nearNotch || (model.expanded && inside)
+    let nextHover = model.expanded ? inside : nearNotch
     if nextHover != hovering {
       hovering = nextHover
       model.hover(nextHover)

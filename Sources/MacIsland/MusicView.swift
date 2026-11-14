@@ -21,15 +21,6 @@ struct MusicView: View {
       if artworkFocused {
         cover(size: 128)
           .frame(maxWidth: .infinity)
-          .overlay(alignment: .trailing) {
-            VStack(spacing: 4) {
-              previousButton
-              playPauseButton
-              nextButton
-              saveButton
-              devicesButton
-            }
-          }
         songDetails(centered: true)
       } else {
         HStack(spacing: 14) {
@@ -40,8 +31,7 @@ struct MusicView: View {
         }
       }
       progress
-      if !artworkFocused {
-        HStack {
+      HStack {
           saveButton
           Spacer()
           previousButton
@@ -50,13 +40,11 @@ struct MusicView: View {
           Spacer()
           nextButton
           Spacer()
-          devicesButton
         }.frame(height: 28)
-        if !media.hasTrack {
+      if !media.hasTrack {
           Button { media.openPlayer() } label: {
             SpotifyMark().frame(width: 14, height: 14).frame(width: 28, height: 20)
           }.buttonStyle(.plain).accessibilityLabel("Open Spotify").help("Open Spotify")
-        }
       }
       if let error = visibleError {
         Button { media.command() } label: {

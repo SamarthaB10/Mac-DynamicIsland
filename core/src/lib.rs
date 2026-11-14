@@ -39,7 +39,7 @@ impl Island {
         match event {
             0 => {
                 self.expanded = true;
-                self.schedule(now, 3000);
+                self.schedule(now, 700);
             }
             1 if !self.hovered => {
                 self.hovered = true;
@@ -72,7 +72,7 @@ impl Island {
             }
             6 => {
                 self.choosing = false;
-                self.schedule(now, 3000);
+                self.schedule(now, 700);
             }
             7 => {
                 self.dropping = true;

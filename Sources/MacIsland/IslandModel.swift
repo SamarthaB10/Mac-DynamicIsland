@@ -32,6 +32,9 @@ final class IslandModel: ObservableObject {
   @Published private(set) var isChoosingFiles = false {
     didSet { updateFileInteraction() }
   }
+  var menuOpen = false {
+    didSet { updateFileInteraction() }
+  }
   var configuringImages = false {
     didSet { updateFileInteraction() }
   }
@@ -119,7 +122,7 @@ final class IslandModel: ObservableObject {
   private var now: UInt64 { DispatchTime.now().uptimeNanoseconds / 1_000_000 }
 
   private func updateFileInteraction() {
-    send(isChoosingFiles || configuringImages || connectingSpotify || draggingFile ? 5 : 6)
+    send(isChoosingFiles || configuringImages || connectingSpotify || draggingFile || menuOpen ? 5 : 6)
   }
 
   // Rust owns open/close policy. Swift schedules only its next requested deadline.
