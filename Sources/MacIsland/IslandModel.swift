@@ -269,6 +269,13 @@ final class IslandModel: ObservableObject {
       textError = "The clipboard does not contain text."
       return true
     }
+    if !savedTextComposing && (!textInput.isEmpty || !textTitle.isEmpty) {
+      // A hidden draft belongs to the composer, not this new clipboard entry.
+      if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        _ = persistText([SavedItem(id: UUID(), text: text, title: nil)] + savedItems)
+      }
+      return true
+    }
     textInput += text
     saveText()
     return true
