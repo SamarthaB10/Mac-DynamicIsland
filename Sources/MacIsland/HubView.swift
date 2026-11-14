@@ -59,7 +59,7 @@ private struct SavedTextView: View {
       if composing {
         TextField("Title (optional)", text: $model.textTitle).textFieldStyle(.plain)
           .font(.system(size: 12, weight: .medium)).accessibilityLabel("Title for new saved text")
-        HubTextInput(text: $model.textInput, height: $inputHeight, save: { model.saveText() })
+        HubTextInput(text: $model.textInput, height: $inputHeight, save: saveDraft)
           .frame(height: inputHeight)
           .overlay(alignment: .topLeading) {
             if model.textInput.isEmpty {
@@ -74,10 +74,8 @@ private struct SavedTextView: View {
             model.textTitle = ""
             composing = false
           }
-          Button("Save") {
-            model.saveText()
-            if model.textInput.isEmpty { composing = false; selectedID = model.savedItems.first?.id }
-          }.disabled(model.textInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+          Button("Save", action: saveDraft)
+            .disabled(model.textInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }.font(.system(size: 11)).controlSize(.small)
       } else if model.savedItems.isEmpty {
         Text("Saved text stays on this Mac until you remove it.")
@@ -138,6 +136,14 @@ private struct SavedTextView: View {
       }
     }
     .contextMenu { Button("Paste") { model.pasteText() } }
+  }
+
+  private func saveDraft() {
+    model.saveText()
+    if model.textInput.isEmpty {
+      composing = false
+      selectedID = model.savedItems.first?.id
+    }
   }
 
   private func saveTitle(_ item: SavedItem) {
