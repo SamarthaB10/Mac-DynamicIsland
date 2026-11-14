@@ -1,0 +1,78 @@
+import Combine
+import Foundation
+
+@MainActor
+final class CountdownTimer: ObservableObject {
+  enum State { case idle, running, paused, expired }
+
+  @Published private(set) var state: State = .idle
+  @Published private(set) var remaining: TimeInterval = 0
+  private let now: () -> Date
+  private let automaticallyUpdates: Bool
+  private var deadline: Date?
+  private var task: Task<Void, Never>?
+  var onExpiry: (() -> Void)?
+
+  init(now: @escaping () -> Date = Date.init, automaticallyUpdates: Bool = true) {
+    self.now = now
+    self.automaticallyUpdates = automaticallyUpdates
+  }
+
+  func start(seconds: TimeInterval) {
+    guard seconds.isFinite, seconds > 0 else { return }
+    task?.cancel()
+    remaining = seconds
+    deadline = now().addingTimeInterval(seconds)
+    state = .running
+    scheduleUpdates()
+  }
+
+  func update() {
+    guard state == .running, let deadline else { return }
+    remaining = max(0, deadline.timeIntervalSince(now()))
+    if remaining == 0 {
+      self.deadline = nil
+      state = .expired
+      task?.cancel()
+      task = nil
+      onExpiry?()
+    }
+  }
+
+  func pause() {
+    update()
+    guard state == .running else { return }
+    deadline = nil
+    state = .paused
+    task?.cancel()
+    task = nil
+  }
+
+  func resume() {
+    guard state == .paused else { return }
+    deadline = now().addingTimeInterval(remaining)
+    state = .running
+    scheduleUpdates()
+  }
+
+  func cancel() {
+    task?.cancel()
+    task = nil
+    deadline = nil
+    remaining = 0
+    state = .idle
+  }
+
+  private func scheduleUpdates() {
+    guard automaticallyUpdates else { return }
+    task = Task { [weak self] in
+      while !Task.isCancelled {
+        try? await Task.sleep(for: .milliseconds(200))
+        guard !Task.isCancelled, let self else { return }
+        self.update()
+      }
+    }
+  }
+
+  deinit { task?.cancel() }
+}
