@@ -130,7 +130,7 @@ struct IslandView: View {
         Image(systemName: "eye.slash").font(.system(size: 12, weight: .semibold))
           .frame(width: 24, height: 28)
       }.buttonStyle(IslandIconButtonStyle())
-        .help("Hide Island. Swipe left over the notch to restore it.")
+        .help("Hide Island. Move away, then return to the notch to restore it.")
         .accessibilityLabel("Hide Island")
       Button {
         model.collapse(force: true)

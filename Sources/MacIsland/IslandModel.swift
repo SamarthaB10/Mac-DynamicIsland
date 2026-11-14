@@ -146,8 +146,14 @@ final class IslandModel: ObservableObject {
   }
 
   func setVisible(_ show: Bool) {
+    let restoring = show && !visible
     UserDefaults.standard.set(!show, forKey: "islandHidden")
     send(show ? 12 : 11)
+    if restoring {
+      // Hidden events are ignored by the core. Restore the current interaction flags.
+      updateFileInteraction()
+      send(dropTargeted ? 7 : 8)
+    }
   }
   func expand() { send(0) }
   func collapse(force: Bool = false) { send(force ? 4 : 9) }
