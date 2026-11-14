@@ -34,31 +34,43 @@ struct HubView: View {
 private struct SavedTextView: View {
   @ObservedObject var model: IslandModel
   @State private var inputHeight: CGFloat = 36
+  @State private var composing = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
-        Text("Paste to save").foregroundStyle(.white.opacity(0.7))
+        Text("Saved Text").font(.system(size: 12, weight: .semibold))
         Spacer()
         Button { model.pasteText() } label: {
-          Image(systemName: "clipboard").frame(width: 24, height: 24)
-        }.buttonStyle(.plain).accessibilityLabel("Paste and save").help("Paste and save")
-      }
-      TextField("Title (optional)", text: $model.textTitle).textFieldStyle(.plain)
-        .font(.system(size: 12, weight: .medium)).accessibilityLabel("Title for new saved text")
-      HStack(alignment: .bottom, spacing: 10) {
+          Image(systemName: "clipboard").frame(width: 30, height: 30).contentShape(Rectangle())
+        }.accessibilityLabel("Paste and save").help("Paste and save")
+        Button { composing = true } label: {
+          Image(systemName: "plus").frame(width: 30, height: 30).contentShape(Rectangle())
+        }.accessibilityLabel("Add saved text").help("Add saved text")
+      }.buttonStyle(.plain)
+      if composing || !model.textInput.isEmpty || !model.textTitle.isEmpty {
+        TextField("Title (optional)", text: $model.textTitle).textFieldStyle(.plain)
+          .font(.system(size: 12, weight: .medium)).accessibilityLabel("Title for new saved text")
         HubTextInput(text: $model.textInput, height: $inputHeight, save: { model.saveText() })
           .frame(height: inputHeight)
           .overlay(alignment: .topLeading) {
             if model.textInput.isEmpty {
-              Text("Type here").font(.system(size: 12)).foregroundStyle(.white.opacity(0.4))
+              Text("Text to save").font(.system(size: 12)).foregroundStyle(.white.opacity(0.4))
                 .padding(.top, 6).padding(.leading, 5).allowsHitTesting(false)
             }
           }
-        if !model.textInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-          Button("Save") { model.saveText() }.buttonStyle(.plain)
-            .font(.system(size: 11, weight: .medium)).padding(6)
-        }
+        HStack {
+          Spacer()
+          Button("Cancel") {
+            model.textInput = ""
+            model.textTitle = ""
+            composing = false
+          }
+          Button("Save") {
+            model.saveText()
+            if model.textInput.isEmpty { composing = false }
+          }.disabled(model.textInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }.font(.system(size: 11)).controlSize(.small)
       }
       if let error = model.textError {
         Text(error).font(.system(size: 11)).textSelection(.enabled)
@@ -69,7 +81,7 @@ private struct SavedTextView: View {
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else {
         ScrollView {
-          LazyVStack(alignment: .leading, spacing: 10) {
+          LazyVStack(alignment: .leading, spacing: 0) {
             ForEach(model.savedItems) { item in
               SavedTextRow(model: model, item: item)
               Divider().overlay(.white.opacity(0.15))
@@ -91,52 +103,44 @@ private struct SavedTextRow: View {
   @State private var expanded = false
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      HStack(spacing: 12) {
-        Spacer()
-        Button { model.moveText(item.id, offset: -1) } label: {
-          Image(systemName: "chevron.up").frame(width: 24, height: 24)
-        }.disabled(model.savedItems.first?.id == item.id)
-          .accessibilityLabel("Move saved text up").help("Move up")
-        Button { model.moveText(item.id, offset: 1) } label: {
-          Image(systemName: "chevron.down").frame(width: 24, height: 24)
-        }.disabled(model.savedItems.last?.id == item.id)
-          .accessibilityLabel("Move saved text down").help("Move down")
-        Spacer()
-      }.buttonStyle(.plain)
-      HStack {
+    HStack(alignment: .center, spacing: 8) {
+      VStack(alignment: .leading, spacing: 3) {
         if editingTitle {
-          TextField("Title", text: $title).textFieldStyle(.plain).onSubmit(saveTitle)
-            .accessibilityLabel("Saved text title")
-          Button(action: saveTitle) { Image(systemName: "checkmark").frame(width: 24, height: 24) }
-            .buttonStyle(.plain).accessibilityLabel("Save title").help("Save title")
-        } else {
-          if let title = item.title { Text(title).font(.system(size: 12, weight: .semibold)) }
-          Spacer(minLength: 0)
+          HStack(spacing: 2) {
+            TextField("Title", text: $title).textFieldStyle(.plain).onSubmit(saveTitle)
+              .accessibilityLabel("Saved text title")
+            Button(action: saveTitle) {
+              Image(systemName: "checkmark").frame(width: 30, height: 30).contentShape(Rectangle())
+            }.accessibilityLabel("Save title").help("Save title")
+          }
+        } else if let title = item.title {
+          Text(title).font(.system(size: 12, weight: .semibold)).lineLimit(2)
         }
-      }
-      Text(item.text).font(.system(size: 12)).textSelection(.enabled)
-        .lineLimit(expanded ? nil : 5)
-        .frame(maxWidth: .infinity, alignment: .leading)
-      HStack(spacing: 12) {
+        Text(item.text).font(.system(size: 12)).foregroundStyle(.white.opacity(0.7))
+          .textSelection(.enabled).lineLimit(expanded ? nil : 2)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      }.frame(maxWidth: .infinity, alignment: .leading)
+      HStack(spacing: 0) {
         Button { model.copyText(item) } label: {
-          Image(systemName: "doc.on.doc").frame(width: 24, height: 24)
-        }.accessibilityLabel("Copy saved text").help("Copy")
-        if item.webURL != nil { Button("Open") { model.openText(item) } }
-        Button { expanded.toggle() } label: {
-          Image(systemName: expanded ? "chevron.up" : "chevron.down").frame(width: 24, height: 24)
-        }.accessibilityLabel(expanded ? "Collapse saved text" : "Expand saved text")
-        Button {
-          title = item.title ?? ""
-          editingTitle = true
-        } label: { Image(systemName: "pencil").frame(width: 24, height: 24) }
-          .accessibilityLabel("Edit saved text title").help("Edit title")
-        Spacer()
+          Image(systemName: "doc.on.doc").frame(width: 30, height: 30).contentShape(Rectangle())
+        }.accessibilityLabel("Copy saved text").help("Copy saved text")
+        Menu {
+          Button("Edit title") { title = item.title ?? ""; editingTitle = true }
+          Button("Move up") { model.moveText(item.id, offset: -1) }
+            .disabled(model.savedItems.first?.id == item.id)
+          Button("Move down") { model.moveText(item.id, offset: 1) }
+            .disabled(model.savedItems.last?.id == item.id)
+          Button(expanded ? "Collapse text" : "Expand text") { expanded.toggle() }
+          if item.webURL != nil { Button("Open URL") { model.openText(item) } }
+        } label: {
+          Image(systemName: "ellipsis").frame(width: 30, height: 30).contentShape(Rectangle())
+        }.menuStyle(.borderlessButton).fixedSize()
+          .accessibilityLabel("More saved text actions").help("More saved text actions")
         Button { model.removeText(item) } label: {
           Image(systemName: "xmark").frame(width: 30, height: 30).contentShape(Rectangle())
-        }.accessibilityLabel("Remove saved text").help("Remove")
-      }.buttonStyle(.plain).font(.system(size: 11, weight: .medium))
-    }.padding(.vertical, 6)
+        }.accessibilityLabel("Remove saved text entry").help("Remove saved text entry")
+      }.frame(width: 90)
+    }.buttonStyle(.plain).padding(.vertical, 8)
   }
 
   private func saveTitle() {
