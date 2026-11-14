@@ -35,6 +35,14 @@ private struct SavedTextView: View {
   @ObservedObject var model: IslandModel
   @State private var inputHeight: CGFloat = 36
   @State private var composing = false
+  @State private var selectedID: UUID?
+  @State private var editingTitle = false
+  @State private var title = ""
+  @State private var expanded = false
+
+  private var selected: SavedItem? {
+    model.savedItems.first { $0.id == selectedID } ?? model.savedItems.first
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -44,11 +52,11 @@ private struct SavedTextView: View {
         Button { model.pasteText() } label: {
           Image(systemName: "clipboard").frame(width: 30, height: 30).contentShape(Rectangle())
         }.accessibilityLabel("Paste and save").help("Paste and save")
-        Button { composing = true } label: {
+        Button { composing.toggle() } label: {
           Image(systemName: "plus").frame(width: 30, height: 30).contentShape(Rectangle())
-        }.accessibilityLabel("Add saved text").help("Add saved text")
+        }.accessibilityLabel("Toggle new saved text").help("Toggle new saved text")
       }.buttonStyle(.plain)
-      if composing || !model.textInput.isEmpty || !model.textTitle.isEmpty {
+      if composing {
         TextField("Title (optional)", text: $model.textTitle).textFieldStyle(.plain)
           .font(.system(size: 12, weight: .medium)).accessibilityLabel("Title for new saved text")
         HubTextInput(text: $model.textInput, height: $inputHeight, save: { model.saveText() })
@@ -68,84 +76,91 @@ private struct SavedTextView: View {
           }
           Button("Save") {
             model.saveText()
-            if model.textInput.isEmpty { composing = false }
+            if model.textInput.isEmpty { composing = false; selectedID = model.savedItems.first?.id }
           }.disabled(model.textInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }.font(.system(size: 11)).controlSize(.small)
+      } else if model.savedItems.isEmpty {
+        Text("Saved text stays on this Mac until you remove it.")
+          .font(.system(size: 11)).foregroundStyle(.white.opacity(0.7))
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else if let item = selected {
+        ScrollView {
+          LazyVStack(alignment: .leading, spacing: 2) {
+            ForEach(model.savedItems) { entry in
+              SavedTextRow(item: entry, selected: entry.id == item.id) {
+                selectedID = entry.id
+                editingTitle = false
+                expanded = false
+              }
+            }
+          }.padding(.trailing, 18)
+        }.frame(maxHeight: .infinity)
+        Divider().overlay(.white.opacity(0.15))
+        if editingTitle {
+          HStack {
+            TextField("Title", text: $title).textFieldStyle(.plain)
+              .accessibilityLabel("Saved text title").onSubmit { saveTitle(item) }
+            Button("Save title") { saveTitle(item) }.controlSize(.small)
+          }.font(.system(size: 12))
+        }
+        ScrollView {
+          Text(item.text).font(.system(size: 12)).foregroundStyle(.white.opacity(0.85))
+            .textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
+        }.frame(height: expanded ? 100 : 55)
+          .accessibilityLabel("Selected saved text preview")
+        Divider().overlay(.white.opacity(0.15))
+        HStack {
+          Text(item.title ?? "Selected item").font(.system(size: 11))
+            .foregroundStyle(.white.opacity(0.65)).lineLimit(1)
+          Spacer()
+          Button { model.copyText(item) } label: {
+            Image(systemName: "doc.on.doc").frame(width: 30, height: 30).contentShape(Rectangle())
+          }.accessibilityLabel("Copy saved text").help("Copy saved text")
+          Menu {
+            Button("Edit title") { title = item.title ?? ""; editingTitle = true }
+            Button("Move up") { model.moveText(item.id, offset: -1) }
+              .disabled(model.savedItems.first?.id == item.id)
+            Button("Move down") { model.moveText(item.id, offset: 1) }
+              .disabled(model.savedItems.last?.id == item.id)
+            Button(expanded ? "Collapse text" : "Expand text") { expanded.toggle() }
+            if item.webURL != nil { Button("Open URL") { model.openText(item) } }
+          } label: {
+            Image(systemName: "ellipsis").frame(width: 30, height: 30).contentShape(Rectangle())
+          }.menuStyle(.borderlessButton).fixedSize()
+            .accessibilityLabel("More saved text actions").help("More saved text actions")
+          Button { model.removeText(item); editingTitle = false } label: {
+            Image(systemName: "xmark").frame(width: 30, height: 30).contentShape(Rectangle())
+          }.accessibilityLabel("Remove saved text entry").help("Remove saved text entry")
+        }.buttonStyle(.plain)
       }
       if let error = model.textError {
         Text(error).font(.system(size: 11)).textSelection(.enabled)
       }
-      if model.savedItems.isEmpty {
-        Text("Saved text stays on this Mac until you remove it.")
-          .font(.system(size: 11)).foregroundStyle(.white.opacity(0.7))
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-      } else {
-        ScrollView {
-          LazyVStack(alignment: .leading, spacing: 0) {
-            ForEach(model.savedItems) { item in
-              SavedTextRow(model: model, item: item)
-              Divider().overlay(.white.opacity(0.15))
-            }
-          }
-          .padding(.trailing, 18)
-        }
-      }
     }
     .contextMenu { Button("Paste") { model.pasteText() } }
+  }
+
+  private func saveTitle(_ item: SavedItem) {
+    model.setTextTitle(item.id, title: title)
+    editingTitle = false
   }
 }
 
 private struct SavedTextRow: View {
-  @ObservedObject var model: IslandModel
   let item: SavedItem
-  @State private var editingTitle = false
-  @State private var title = ""
-  @State private var expanded = false
+  let selected: Bool
+  let select: () -> Void
 
   var body: some View {
-    HStack(alignment: .center, spacing: 8) {
+    Button(action: select) {
       VStack(alignment: .leading, spacing: 3) {
-        if editingTitle {
-          HStack(spacing: 2) {
-            TextField("Title", text: $title).textFieldStyle(.plain).onSubmit(saveTitle)
-              .accessibilityLabel("Saved text title")
-            Button(action: saveTitle) {
-              Image(systemName: "checkmark").frame(width: 30, height: 30).contentShape(Rectangle())
-            }.accessibilityLabel("Save title").help("Save title")
-          }
-        } else if let title = item.title {
-          Text(title).font(.system(size: 12, weight: .semibold)).lineLimit(2)
-        }
-        Text(item.text).font(.system(size: 12)).foregroundStyle(.white.opacity(0.7))
-          .textSelection(.enabled).lineLimit(expanded ? nil : 2)
-          .frame(maxWidth: .infinity, alignment: .leading)
-      }.frame(maxWidth: .infinity, alignment: .leading)
-      HStack(spacing: 0) {
-        Button { model.copyText(item) } label: {
-          Image(systemName: "doc.on.doc").frame(width: 30, height: 30).contentShape(Rectangle())
-        }.accessibilityLabel("Copy saved text").help("Copy saved text")
-        Menu {
-          Button("Edit title") { title = item.title ?? ""; editingTitle = true }
-          Button("Move up") { model.moveText(item.id, offset: -1) }
-            .disabled(model.savedItems.first?.id == item.id)
-          Button("Move down") { model.moveText(item.id, offset: 1) }
-            .disabled(model.savedItems.last?.id == item.id)
-          Button(expanded ? "Collapse text" : "Expand text") { expanded.toggle() }
-          if item.webURL != nil { Button("Open URL") { model.openText(item) } }
-        } label: {
-          Image(systemName: "ellipsis").frame(width: 30, height: 30).contentShape(Rectangle())
-        }.menuStyle(.borderlessButton).fixedSize()
-          .accessibilityLabel("More saved text actions").help("More saved text actions")
-        Button { model.removeText(item) } label: {
-          Image(systemName: "xmark").frame(width: 30, height: 30).contentShape(Rectangle())
-        }.accessibilityLabel("Remove saved text entry").help("Remove saved text entry")
-      }.frame(width: 90)
-    }.buttonStyle(.plain).padding(.vertical, 8)
-  }
-
-  private func saveTitle() {
-    model.setTextTitle(item.id, title: title)
-    editingTitle = false
+        Text(item.title ?? "Saved text").font(.system(size: 12, weight: .semibold)).lineLimit(1)
+        Text(item.text).font(.system(size: 11)).foregroundStyle(.white.opacity(0.7)).lineLimit(1)
+      }.frame(maxWidth: .infinity, alignment: .leading).padding(8)
+        .background(selected ? Color.white.opacity(0.14) : Color.clear, in: RoundedRectangle(cornerRadius: 8))
+        .contentShape(Rectangle())
+    }.buttonStyle(.plain).accessibilityLabel(item.title ?? "Saved text")
+      .accessibilityValue(selected ? "Selected" : "").help("Preview saved text")
   }
 }
 
