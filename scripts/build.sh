@@ -28,5 +28,7 @@ fi
 cp scripts/Info.plist "$APP/Contents/Info.plist"
 mkdir -p "$APP/Contents/Resources"
 cp Resources/Google.png "$APP/Contents/Resources/Google.png"
+mkdir -p "$APP/Contents/Resources/NotificationIcons"
+cp Resources/NotificationIcons/*.png "$APP/Contents/Resources/NotificationIcons/"
 codesign --force --sign - --entitlements scripts/MacIsland.entitlements "$APP"
 echo "Built $APP"

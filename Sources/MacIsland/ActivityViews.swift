@@ -7,7 +7,9 @@ struct ActivityProgressRing: View {
 
   var body: some View {
     ZStack {
-      if activity.state == .running, let progress = activity.progress {
+      if activity.kind == .notification {
+        Image(systemName: "bell.fill").font(.system(size: 14, weight: .semibold))
+      } else if activity.state == .running, let progress = activity.progress {
         Circle().stroke(.white.opacity(0.18), lineWidth: 2)
         Circle().trim(from: 0, to: progress)
           .stroke(.cyan, style: StrokeStyle(lineWidth: 2, lineCap: .round))

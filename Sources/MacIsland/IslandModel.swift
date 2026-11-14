@@ -7,6 +7,7 @@ enum IslandTab: String, CaseIterable {
   case files = "Hub"
   case devices = "Devices"
   case timer = "Timer"
+  case notifications = "Notifications"
 }
 
 @MainActor
@@ -19,6 +20,9 @@ final class IslandModel: ObservableObject {
   @Published var tab = IslandTab.music
   @Published var musicArtworkFocused = false
   let activities = ActivityStore()
+  let notifications = IslandNotificationStore()
+  @Published private(set) var notificationArrival = 0
+  private var notificationSubscriptions = Set<AnyCancellable>()
   let timer = CountdownTimer()
   private var timerActivity: UUID?
   let hubFiles = HubFileStore()
@@ -66,8 +70,10 @@ final class IslandModel: ObservableObject {
 
   static let expandedSize = CGSize(width: 408, height: 216)
   static let hubSize = CGSize(width: 480, height: 360)
+  static let notificationsSize = CGSize(width: 440, height: 305)
   static let savedTextMaxHeight: CGFloat = 520
   var contentSize: CGSize {
+    if tab == .notifications { return Self.notificationsSize }
     if tab == .files {
       if hubView == .files { return Self.hubSize }
       let height: CGFloat = savedTextComposing ? 300 :
@@ -87,11 +93,13 @@ final class IslandModel: ObservableObject {
   }
   var compactSize: CGSize {
     CGSize(
-      width: notchWidth > 0 ? notchWidth + 88 : 248, height: notchHeight > 0 ? notchHeight : 36)
+      width: notchWidth > 0 ? notchWidth + compactSideWidth * 2 : 248,
+      height: notchHeight > 0 ? notchHeight : 36)
   }
+  var compactSideWidth: CGFloat { notifications.unreadCount > 0 ? 76 : 44 }
   var canvasSize: CGSize {
     CGSize(
-      width: max(Self.hubSize.width, compactSize.width) + 48,
+      width: max(Self.hubSize.width, Self.notificationsSize.width, compactSize.width) + 48,
       height: max(Self.hubSize.height, Self.savedTextMaxHeight) + notchHeight + 48)
   }
   static let canvasInset: CGFloat = 24
@@ -115,6 +123,15 @@ final class IslandModel: ObservableObject {
       textStoreLoaded = true
     } catch { textError = "Saved Text could not be loaded. Existing data was kept. \(error.localizedDescription)" }
     timer.onChange = { [weak self] in self?.updateTimerActivity() }
+    notifications.$items.sink { [weak self] items in
+      guard let self else { return }
+      self.activities.setNotificationCount(items.filter { !$0.isRead }.count)
+      self.objectWillChange.send()
+    }.store(in: &notificationSubscriptions)
+    notifications.$arrivalSequence.dropFirst().sink { [weak self] _ in
+      guard let self, !self.expanded, self.visible else { return }
+      self.notificationArrival += 1
+    }.store(in: &notificationSubscriptions)
     if UserDefaults.standard.bool(forKey: "islandHidden") { send(11) }
     audioSubscription = audio.$name.removeDuplicates().dropFirst()
       .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
@@ -205,6 +222,9 @@ final class IslandModel: ObservableObject {
 
   func openActivity(_ activity: IslandActivity) {
     switch activity.kind {
+    case .notification:
+      tab = .notifications
+      openForKeyboard?()
     case .upload, .download: openGoogleDrive?()
     case .timer:
       tab = .timer

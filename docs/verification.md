@@ -219,3 +219,12 @@ The app is installed in `/Applications/Mac Island.app`. It does not need the sou
 The app installation and GitHub publication were requested by the user. The source folder started empty, with no existing changes. All new files serve the app, its build, setup, or evidence.
 
 Public Canopy pages and its public release were used for the initial inspection. Apple, Google, and Open-Meteo documentation was read. GitHub stores the source and app download. No database was used. No Canopy code or artwork was copied. No production database, Google cloud file, sharing permission, or Google account credential was changed during development.
+
+
+## Notifications: draft implementation
+
+The native host build and signature verification passed. The existing seven activity checks and the countdown timer checks passed. No new tests were written. Two Terra reviews found an event-pipe termination race and an incorrect read update after opening a source home page; both were corrected.
+
+An authorized, labeled X browser test reached Ardia's event stream, was saved in Mac Island's notification file, and appeared in the running notification section with its title, body, source count, and actions. An earlier labeled YouTube test reached Ardia's stream. Live Gmail and LinkedIn events were not checked. The native empty view was inspected after adding the four source logos and shrinking the panel from 620 by 430 to 440 by 305 points. PR-only evidence stays outside the source tree.
+
+Full articles, exact destination links, website read state, removal of matching macOS alerts, and delivery with site tabs closed remain incomplete or unverified. Retry was removed for operations that the current feed cannot perform. The UI keeps one clear notice for local-only actions. Saved Text changes from main commit 6b3b339 are included. This build was run from the notification worktree; the Applications copy was not replaced.

@@ -12,6 +12,7 @@ struct IslandView: View {
   }
 
   var body: some View {
+    let suppressNotificationMotion = reduceMotion || model.expanded
     ZStack(alignment: .top) {
       ZStack(alignment: .top) {
         if model.expanded {
@@ -24,10 +25,12 @@ struct IslandView: View {
             .transaction { $0.animation = reduceMotion ? nil : .easeOut(duration: 0.14) }
         } else {
           CompactIslandView(
-            media: model.media, audio: model.audio, activities: model.activities, notice: model.connectionNotice,
-            notchWidth: model.notchWidth,
+            media: model.media, audio: model.audio, activities: model.activities,
+            notifications: model.notifications, notice: model.connectionNotice,
+            notchWidth: model.notchWidth, sideWidth: model.compactSideWidth,
             open: { model.tab = .music; model.openForKeyboard?() },
-            openActivity: { _ in model.tab = .files; model.hubView = .files; model.expand() }
+            openActivity: model.openActivity,
+            openNotifications: { model.tab = .notifications; model.openForKeyboard?() }
           )
           .frame(width: model.compactSize.width, height: model.compactSize.height)
           .allowsHitTesting(!model.expanded)
@@ -52,6 +55,14 @@ struct IslandView: View {
       .animation(motion, value: model.musicArtworkFocused)
       .animation(motion, value: model.tab)
       .animation(motion, value: model.connectionNotice)
+      .keyframeAnimator(initialValue: CGFloat.zero, trigger: model.notificationArrival) { content, shift in
+        content.offset(x: suppressNotificationMotion ? 0 : shift)
+      } keyframes: { _ in
+        CubicKeyframe(CGFloat(-3), duration: 0.07)
+        CubicKeyframe(CGFloat(3), duration: 0.10)
+        CubicKeyframe(CGFloat(-2), duration: 0.08)
+        CubicKeyframe(CGFloat.zero, duration: 0.10)
+      }
       .padding(.top, IslandModel.canvasInset)
     }
     .frame(width: model.canvasSize.width, height: model.canvasSize.height, alignment: .top)
@@ -81,6 +92,8 @@ struct IslandView: View {
           case .timer: CountdownTimerView(timer: model.timer)
           case .files: HubView(model: model)
           case .devices: DevicesView(audio: model.audio)
+          case .notifications:
+            NotificationsView(notifications: model.notifications, menuOpen: { model.menuOpen = $0 })
           }
         }
         .id(model.tab)
@@ -134,13 +147,13 @@ struct IslandView: View {
   }
 
   private var navigationTabs: some View {
-    ForEach([IslandTab.music, .files], id: \.self) { tab in
+    ForEach([IslandTab.music, .files, .notifications], id: \.self) { tab in
       Button {
         model.tab = tab
         if tab == .music { model.musicArtworkFocused = false }
-        if tab == .files { model.openForKeyboard?() }
+        if tab == .files || tab == .notifications { model.openForKeyboard?() }
       } label: {
-        Image(systemName: tab == .music ? "music.note" : "folder")
+        Image(systemName: tab == .music ? "music.note" : (tab == .files ? "folder" : "bell"))
           .frame(width: model.musicArtworkFocused && model.tab == .music ? 28 : 32, height: 28)
           .background(model.tab == tab ? .white.opacity(0.15) : .clear, in: RoundedRectangle(cornerRadius: 7))
       }
@@ -156,10 +169,13 @@ struct CompactIslandView: View {
   @ObservedObject var media: MediaController
   @ObservedObject var audio: AudioController
   @ObservedObject var activities: ActivityStore
+  @ObservedObject var notifications: IslandNotificationStore
   let notice: String?
   let notchWidth: CGFloat
+  let sideWidth: CGFloat
   let open: () -> Void
   let openActivity: (IslandActivity) -> Void
+  let openNotifications: () -> Void
 
   var body: some View {
     HStack(spacing: notchWidth > 0 ? 0 : 10) {
@@ -174,27 +190,38 @@ struct CompactIslandView: View {
                 .font(.system(size: 9)).foregroundStyle(.white.opacity(0.6)).lineLimit(1)
             }
           }
-        }.frame(width: notchWidth > 0 ? 44 : nil)
+        }.frame(width: notchWidth > 0 ? sideWidth : nil)
       }.buttonStyle(.plain).accessibilityLabel("Open Now Playing, \(media.hasTrack ? media.title : "Spotify")")
       if notchWidth > 0 { Color.clear.frame(width: notchWidth).allowsHitTesting(false) }
       else { Spacer(minLength: 0) }
       HStack(spacing: 2) {
         Button(action: open) {
           PlayingIndicator(playing: media.playing)
-            .frame(width: activities.primary == nil ? (notice == nil ? 40 : 22) : 14, height: 26)
+            .frame(width: activities.primary == nil && notifications.unreadCount == 0 ? (notice == nil ? 40 : 22) : 14, height: 26)
         }.buttonStyle(.plain).accessibilityLabel("Open Now Playing")
-        if let activity = activities.primary {
+        if let activity = activities.primary, activity.kind != .notification {
           CompactActivityButton(activity: activity) {
             activities.bringForward(activity.id)
             openActivity(activity)
           }
           .id(activity.id)
           .transition(.opacity)
-        } else if notice != nil {
+        } else if notice != nil && notifications.unreadCount == 0 {
           Image(systemName: audio.headphones ? "headphones" : "speaker.wave.2")
             .font(.system(size: 10)).accessibilityLabel(notice ?? "Audio output changed")
         }
-      }.frame(width: notchWidth > 0 ? 44 : nil)
+        if notifications.unreadCount > 0 {
+          Button(action: openNotifications) {
+            HStack(spacing: 2) {
+              Image(systemName: "bell.fill").font(.system(size: 11))
+              Text(notifications.unreadCount > 99 ? "99+" : "\(notifications.unreadCount)")
+                .font(.system(size: 9, weight: .semibold)).monospacedDigit()
+            }.frame(minWidth: 28, minHeight: 28)
+          }.buttonStyle(.plain)
+            .help("Open Notifications, \(notifications.unreadCount) unread")
+            .accessibilityLabel("Open Notifications, \(notifications.unreadCount) unread")
+        }
+      }.frame(width: notchWidth > 0 ? sideWidth : nil)
     }
     .padding(.horizontal, notchWidth > 0 ? 0 : 12)
     .frame(maxWidth: .infinity, maxHeight: .infinity)

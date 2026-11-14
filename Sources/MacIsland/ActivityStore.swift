@@ -2,7 +2,7 @@ import Combine
 import Foundation
 
 enum ActivityKind {
-  case upload, download, processing, timer
+  case upload, download, processing, timer, notification
 
   var symbol: String {
     switch self {
@@ -10,6 +10,7 @@ enum ActivityKind {
     case .download: "arrow.down.doc"
     case .processing: "doc.badge.gearshape"
     case .timer: "timer"
+    case .notification: "bell.fill"
     }
   }
 }
@@ -59,6 +60,21 @@ final class ActivityStore: ObservableObject {
   private var cancelActions: [UUID: () -> Void] = [:]
   private var expiryTasks: [UUID: Task<Void, Never>] = [:]
   private var front: [ActivityGroup: UUID] = [:]
+  private var notificationSummary: UUID?
+
+  // Keeps unread notifications available without displacing running jobs.
+  func setNotificationCount(_ count: Int) {
+    if count == 0 {
+      if let id = notificationSummary { activities.removeAll { $0.id == id } }
+      notificationSummary = nil
+      return
+    }
+    if notificationSummary == nil {
+      notificationSummary = start(kind: .notification, title: "Notifications", priority: 5)
+    }
+    guard let id = notificationSummary else { return }
+    update(id, progress: nil, title: "\(count) unread notifications", detail: "Open Notifications")
+  }
 
   var ordered: [IslandActivity] {
     activities.sorted {
