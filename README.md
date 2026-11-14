@@ -32,6 +32,14 @@ Play music in Spotify. The cover and playing indicator appear beside the notch. 
 
 Allow Automation access to Spotify when macOS asks. If access is denied, change it in **System Settings > Privacy & Security > Automation**. Apple Music is not supported.
 
+### Notifications
+
+Select the bell beside Music and Hub to open Notifications. Use the source list to filter X, LinkedIn, Gmail, or YouTube. Settings lets you select sources and connect to Ardia. Ardia must be running with **Let the ardia command control Ardia** enabled, and its `ardia` command must be installed at `~/.local/bin/ardia`. Website notification permission is also required. The connection listens for new browser alerts; it does not import existing notification history.
+
+Cards and source choices stay on this Mac across restarts until you remove them. New unread alerts add a bell and count beside the notch without opening the island. A short jiggle respects Reduce Motion. Clear All removes the saved cards. The panel uses the app's black, white, and gray palette with the source logos.
+
+**This integration is incomplete.** Ardia's current event feed provides only the source, title, and body. Full posts, articles, images, and exact destination links are not available through this feed. Open goes to the source website. Mark as read and Dismiss change Mac Island only; website read state and macOS alerts stay unchanged. The UI shows one notice for this limit. Delivery with site tabs closed and live alerts from LinkedIn and Gmail have not been verified.
+
 ### Activity
 
 Drive transfers and Hub file actions share a native activity engine. Music stays visible beside a small job indicator at the notch. Select the job indicator to open its Drive or Hub view. Open the **Files** folder icon to see the live job strip above the file tray. Select its count and chevron to see all jobs, including jobs grouped behind another one. A small music strip keeps playback available in Files.

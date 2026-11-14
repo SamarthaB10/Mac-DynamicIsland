@@ -16,3 +16,15 @@ An outgoing drag that another app accepted. Acceptance does not mean that the re
 
 **Saved text**:
 A text entry or complete web link kept on this Mac until the user removes it. It can have an optional title.
+
+**Website notification**:
+An alert that a selected website sends through the user's browser.
+
+**Notifications**:
+The area in the island that holds website notification cards. A bell identifies this area.
+
+**Read notification**:
+A website notification marked as read in the island. Its card stays in Notifications until dismissed.
+
+**Dismissed notification**:
+A website notification whose card the user removed from the island. Removal of its macOS alert and the change to its website read state can fail separately; the website item is not deleted.
