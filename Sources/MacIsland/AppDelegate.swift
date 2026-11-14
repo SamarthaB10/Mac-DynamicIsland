@@ -393,7 +393,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     model.collapse(force: true)
     if driveWindow == nil {
       let drive = driveController ?? GoogleDriveController(hubFiles: model.hubFiles, activities: model.activities)
-      drive.receivedFile = { [weak self] url in self?.model.hubFiles.add([url]) }
+      drive.receivedFile = { [weak self] url in self?.model.hubFiles.add([url], reveal: false) }
       driveController = drive
       let window = NSWindow(
         contentRect: NSRect(x: 0, y: 0, width: 700, height: 520),

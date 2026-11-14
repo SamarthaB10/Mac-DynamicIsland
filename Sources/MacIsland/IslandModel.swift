@@ -263,14 +263,13 @@ final class IslandModel: ObservableObject {
         }
         return result
       }.value
-      self.hubFiles.add(result.files)
+      self.hubFiles.add(result.files, reveal: false)
       self.hubFiles.finishProcessing()
       self.activities.finish(activity, state: result.failures.isEmpty ? .succeeded : .failed,
         detail: result.failures.isEmpty ? "Saved to Downloads" : result.failures.joined(separator: "\n"))
       self.isChoosingFiles = false
       self.actionReport = "Saved \(result.files.count) file(s) to Downloads. These copies stay on this Mac."
         + (result.failures.isEmpty ? "" : "\nFailed:\n" + result.failures.joined(separator: "\n"))
-      self.openForKeyboard?()
     }
   }
 
@@ -346,13 +345,12 @@ final class IslandModel: ObservableObject {
         let result = await Task.detached(priority: .userInitiated) {
           FileActions.run(action, sources: sources, folder: folder)
         }.value
-        self.hubFiles.add(result.files)
+        self.hubFiles.add(result.files, reveal: false)
         self.hubFiles.selectedFiles.subtract(sources)
         self.hubFiles.finishProcessing()
         self.activities.finish(activity, state: result.failures.isEmpty ? .succeeded : .failed,
           detail: result.failures.isEmpty ? "Finished. See the Hub report." : result.failures.joined(separator: "\n"))
         self.isChoosingFiles = false
-        self.openForKeyboard?()
         self.actionReport = "Added \(result.files.count) result file(s) to the Hub."
           + (result.notes.isEmpty ? "" : "\n" + result.notes.joined(separator: "\n"))
           + (result.failures.isEmpty ? "" : "\nFailed:\n" + result.failures.joined(separator: "\n"))

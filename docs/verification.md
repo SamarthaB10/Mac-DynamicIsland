@@ -1,5 +1,38 @@
 # Verification
 
+## Native activity engine: 2026-11-13
+
+Work why: Show Drive transfers and Hub file work beside music, with one native activity model and clear result states. Specification: [#12](https://github.com/SamarthaB10/Mac-DynamicIsland/issues/12).
+
+The activity store owns IDs, stable priority order, groups, progress, cancellation requests, and brief end states. SwiftUI supplies a progress ring, job control, and Activity list. Drive supplies byte counts through per-transfer URLSession delegates. Unknown totals and synchronous Hub work stay indeterminate. The native service adapters keep ownership of file work and confirm the final result.
+
+Checks performed in this task:
+
+- `swift build`: passed after the engine and adapters were added.
+- `./scripts/check-activities.sh`: passed all seven public activity-store checks after the review fix.
+- `./scripts/build.sh`: passed for the host Mac after the review fix.
+- `codesign --verify --deep --strict`: passed for the fresh and installed bundles.
+- `cmp` of the built and installed executables: passed.
+- The first SwiftPM test attempt could not load `Testing`; this Command Line Tools installation also has no `xctest`. No framework or package was installed. The approved activity-store seam uses a standalone Swift check runner instead. It checks priority, groups, progress, cancellation, alert expiry, and late callbacks.
+
+Native UI access returned `Computer Use server error -10005: timeoutReached` on each attempt to select the installed app. The optional launch function was also unavailable. App selection did launch the process. These errors prevented accessibility inspection and before/after screenshots. The build and store checks do not prove the visible UI.
+
+Still unverified in the running UI: music beside a real job, live upload/download progress and cancellation, Hub success and failure, priority changes, rapid open/close, pin, picker and drag behavior, hide/restore, reduced motion, keyboard access, and VoiceOver. No cloud files were uploaded for verification. Exact islandcn motion matching is not established; its public source has no reference recordings. No React code or service demo data was copied.
+
+### Standards review
+
+One finding: the README claimed that results do not open or unhide the island, but existing Hub completion callbacks still did so. The fix adds a non-revealing path for background results. Explicit file choices and drops keep their reveal behavior. No other documented-standard or useful code-smell finding was reported.
+
+### Spec review
+
+One finding: Hub and Drive download completion could replace the selected tab or show a hidden island. Both now add results without invoking the reveal callback. Hub completion no longer invokes the keyboard-open callback. No scope creep was reported. The correction was checked directly in source and rebuilt; it is not a completed runtime UI check.
+
+Both reviews used the diff from `b1a8f4ff16e642fb94506d05fb826d6f4f2b88f3`. They found one issue per axis, with the same root cause. The code fix addresses both findings. No delegate re-check was run for this small correction.
+
+Samartha requested a PR and an installed-app update. [#13](https://github.com/SamarthaB10/Mac-DynamicIsland/pull/13) was merged by Samartha while this work was still in progress. Main then pointed to `4224aae7bfdfc3a1cc624f56ad23b543dd46caba`. The final documentation, compact audio notice width adjustment, and completion correction need a follow-up PR.
+
+The corrected build was copied to `/Applications/Mac Island.app`. Its executable SHA-256 is `77413ba718fc2883e8d4a4dc68d0941bd25dd112987d0aef9e096185cbdb6559`. A backup of the previous installed app is under `~/Library/Application Support/Mac Island Backups/activity-engine-_1ong2rn/`. No new dependency, permission, public release, or deployment was added. The repository has no checked-in workflow that builds or publishes a download on merge. Packaging and release upload still need an explicit action.
+
 ## Hub file lifetime and island controls: 2026-10-28
 
 Work why: Keep Hub file safety rules in one module and make island controls respond separately.
