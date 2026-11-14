@@ -4,6 +4,8 @@
 
 Work why: Show Drive transfers and Hub file work beside music, with one native activity model and clear result states. Specification: [#12](https://github.com/SamarthaB10/Mac-DynamicIsland/issues/12).
 
+Samartha also requested an explicit way to hide the island and restore it with a swipe. The expanded controls now include an eye-slash Hide button. Command-H uses the same hide action while Mac Island has keyboard focus. The menu names the available Hide or Show action. The existing right-swipe hide and left-swipe restore handlers remain in use. Their runtime behavior is still unverified.
+
 The activity store owns IDs, stable priority order, groups, progress, cancellation requests, and brief end states. SwiftUI supplies a progress ring, job control, and Activity list. Drive supplies byte counts through per-transfer URLSession delegates. Unknown totals and synchronous Hub work stay indeterminate. The native service adapters keep ownership of file work and confirm the final result.
 
 Checks performed in this task:
@@ -29,9 +31,9 @@ One finding: Hub and Drive download completion could replace the selected tab or
 
 Both reviews used the diff from `b1a8f4ff16e642fb94506d05fb826d6f4f2b88f3`. They found one issue per axis, with the same root cause. The code fix addresses both findings. No delegate re-check was run for this small correction.
 
-Samartha requested a PR and an installed-app update. [#13](https://github.com/SamarthaB10/Mac-DynamicIsland/pull/13) was merged by Samartha while this work was still in progress. Main then pointed to `4224aae7bfdfc3a1cc624f56ad23b543dd46caba`. The final documentation, compact audio notice width adjustment, and completion correction need a follow-up PR.
+Samartha requested a PR and an installed-app update. [#13](https://github.com/SamarthaB10/Mac-DynamicIsland/pull/13) was merged by Samartha while this work was still in progress. Main then pointed to `4224aae7bfdfc3a1cc624f56ad23b543dd46caba`. The final documentation, compact audio notice width adjustment, completion correction, and explicit Hide control are in the follow-up work. Samartha approved opening its PR with screenshots and live UI checks still pending. Main had no check runs, commit statuses, or Actions runs at this read; checks were absent, not passing.
 
-The corrected build was copied to `/Applications/Mac Island.app`. Its executable SHA-256 is `77413ba718fc2883e8d4a4dc68d0941bd25dd112987d0aef9e096185cbdb6559`. A backup of the previous installed app is under `~/Library/Application Support/Mac Island Backups/activity-engine-_1ong2rn/`. No new dependency, permission, public release, or deployment was added. The repository has no checked-in workflow that builds or publishes a download on merge. Packaging and release upload still need an explicit action.
+The corrected build was copied to `/Applications/Mac Island.app`. Its executable SHA-256 is `aa5e9336b678519a628b534e3789aa0296e48b1c5ee65aa4fe073cf257d67094`. A backup of the previous installed app is under `~/Library/Application Support/Mac Island Backups/activity-engine-_1ong2rn/`. No new dependency, permission, public release, or deployment was added. The repository has no checked-in workflow that builds or publishes a download on merge. Packaging and release upload still need an explicit action.
 
 ## Hub file lifetime and island controls: 2026-10-28
 

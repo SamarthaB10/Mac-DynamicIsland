@@ -158,6 +158,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let applicationItem = NSMenuItem()
     let applicationMenu = NSMenu()
     applicationMenu.addItem(item("Open Island", action: #selector(openIsland), key: "o"))
+    applicationMenu.addItem(item("Hide Island", action: #selector(hideIsland), key: "h"))
     applicationMenu.addItem(item("Keep Island Open", action: #selector(togglePin), key: "p"))
     applicationMenu.addItem(item("Add Files…", action: #selector(addFiles), key: ""))
     applicationMenu.addItem(.separator())
@@ -336,8 +337,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   private func updateMenu() {
     let menu = NSMenu()
-    let visibility = item("Show Island", action: #selector(toggleVisibility), key: "")
-    visibility.state = model.visible ? .on : .off
+    let visibility = item(model.visible ? "Hide Island" : "Show Island", action: #selector(toggleVisibility), key: "")
     menu.addItem(visibility)
     menu.addItem(item("Open Island", action: #selector(openIsland), key: "o"))
     menu.addItem(item("Collapse Island", action: #selector(collapseIsland), key: ""))
@@ -376,6 +376,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     layout()
     NSApp.activate(ignoringOtherApps: true)
   }
+  @objc private func hideIsland() { model.setVisible(false) }
   @objc private func toggleVisibility() {
     model.setVisible(!model.visible)
     updateMenu()

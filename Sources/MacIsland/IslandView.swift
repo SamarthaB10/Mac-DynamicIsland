@@ -93,7 +93,7 @@ struct IslandView: View {
                 if model.musicArtworkFocused {
                   VStack(alignment: .leading, spacing: 14) {
                     navigationTabs
-                    HStack(spacing: 3) { islandControls }
+                    HStack(spacing: 2) { islandControls }
                   }.frame(width: 76, alignment: .leading).padding(.bottom, 63)
                 }
               }
@@ -124,6 +124,14 @@ struct IslandView: View {
           .frame(width: 24, height: 28).foregroundStyle(.white.opacity(model.pinned ? 1 : 0.6))
       }.buttonStyle(IslandIconButtonStyle()).help(model.pinned ? "Allow automatic close" : "Keep open")
         .accessibilityLabel(model.pinned ? "Unpin island" : "Pin island")
+      Button {
+        model.setVisible(false)
+      } label: {
+        Image(systemName: "eye.slash").font(.system(size: 12, weight: .semibold))
+          .frame(width: 24, height: 28)
+      }.buttonStyle(IslandIconButtonStyle())
+        .help("Hide Island. Swipe left over the notch to restore it.")
+        .accessibilityLabel("Hide Island")
       Button {
         model.collapse(force: true)
       } label: {
