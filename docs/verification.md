@@ -1,3 +1,15 @@
+## Compact Saved Text follow-up: 2026-11-13
+
+Work why: Remove unused space from the selected-text shelf while keeping the action bar clear of scrolling.
+
+The content width is 360 points instead of the shared 480-point file tray width. Height follows up to three visible rows, composer, title editing, detail expansion, and errors. Paste and Add now share the view-picker row. Repeated headings, selected-title text, and row snippets were removed. Copy, More, and Remove remain outside the list and preview scroll areas.
+
+The compact source review found one issue: a hidden typed draft could be combined with a later clipboard entry. The correction saves the clipboard as a separate item and preserves the hidden draft. Standards reported that issue; Spec reported no findings. The final correction was checked directly in source. No test boundary was added.
+
+The final host bundle build, seven ActivityStore checks, and timer checks passed after the clipboard correction. Built and installed signature verification passed, and their executables compare equal. The compact build is installed at `/Applications/Mac Island.app`. Its executable SHA-256 is `c7be12913d50da4a75c69c0d11227ebac8c10f9f4a85c8c7fbfb2246a153de5d`. A backup is at `~/Library/Application Support/Mac Island Backups/compact-shelf-20261113-222418/Mac Island.app`. The installed process was observed after launch; the native launch read timed out, so final compact layout appearance is not claimed as verified.
+
+Samartha explicitly waived screenshots for this work. Native screenshot capture previously timed out. The full native motion, VoiceOver, drag/drop, cloud transfer, and reduced-motion checks remain pending. No user saved entry was removed during verification. PR #15 was merged externally while the follow-up was being prepared; this compact change is a separate PR based on main at `4116ed094f7dda1283bceda6717f1288aa311bb9`.
+
 ## Quiet native UI states: 2026-11-13
 
 Work why: Reduce competing controls in music and keep the playing island small at the notch.
