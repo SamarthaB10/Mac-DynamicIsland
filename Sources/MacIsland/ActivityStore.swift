@@ -2,13 +2,14 @@ import Combine
 import Foundation
 
 enum ActivityKind {
-  case upload, download, processing
+  case upload, download, processing, timer
 
   var symbol: String {
     switch self {
     case .upload: "arrow.up.doc"
     case .download: "arrow.down.doc"
     case .processing: "doc.badge.gearshape"
+    case .timer: "timer"
     }
   }
 }
@@ -88,13 +89,14 @@ final class ActivityStore: ObservableObject {
     return id
   }
 
-  func update(_ id: UUID, progress: Double?, priority: Int? = nil, title: String? = nil) {
+  func update(_ id: UUID, progress: Double?, priority: Int? = nil, title: String? = nil, detail: String? = nil) {
     guard let index = activities.firstIndex(where: { $0.id == id }),
       activities[index].state == .running
     else { return }
     activities[index].progress = progress.flatMap { $0.isFinite ? min(1, max(0, $0)) : nil }
     if let priority { activities[index].priority = priority }
     if let title { activities[index].title = title }
+    if let detail { activities[index].detail = detail }
   }
 
   func update(_ id: UUID, completedBytes: Int64, totalBytes: Int64) {

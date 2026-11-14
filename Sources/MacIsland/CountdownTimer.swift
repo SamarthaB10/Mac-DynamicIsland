@@ -7,6 +7,7 @@ final class CountdownTimer: ObservableObject {
 
   @Published private(set) var state: State = .idle
   @Published private(set) var remaining: TimeInterval = 0
+  private(set) var duration: TimeInterval = 0
   private let now: () -> Date
   private let automaticallyUpdates: Bool
   private var deadline: Date?
@@ -21,6 +22,7 @@ final class CountdownTimer: ObservableObject {
   func start(seconds: TimeInterval) {
     guard seconds.isFinite, seconds > 0 else { return }
     task?.cancel()
+    duration = seconds
     remaining = seconds
     deadline = now().addingTimeInterval(seconds)
     state = .running
@@ -60,6 +62,7 @@ final class CountdownTimer: ObservableObject {
     task = nil
     deadline = nil
     remaining = 0
+    duration = 0
     state = .idle
   }
 
@@ -67,7 +70,7 @@ final class CountdownTimer: ObservableObject {
     guard automaticallyUpdates else { return }
     task = Task { [weak self] in
       while !Task.isCancelled {
-        try? await Task.sleep(for: .milliseconds(200))
+        try? await Task.sleep(for: .seconds(1))
         guard !Task.isCancelled, let self else { return }
         self.update()
       }

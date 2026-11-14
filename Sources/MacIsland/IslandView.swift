@@ -78,6 +78,7 @@ struct IslandView: View {
               showDevices: { model.tab = .devices },
               prepareSignIn: { model.connectingSpotify = true; model.openForKeyboard?() },
               finishedSignIn: { model.connectingSpotify = false; model.openForKeyboard?() })
+          case .timer: CountdownTimerView(timer: model.timer)
           case .files: HubView(model: model)
           case .devices: DevicesView(audio: model.audio)
           case .activities:
@@ -107,6 +108,7 @@ struct IslandView: View {
       .popover(isPresented: $moreOpen) {
         VStack(alignment: .leading, spacing: 8) {
           Button(model.pinned ? "Allow automatic close" : "Keep open") { model.togglePin(); moreOpen = false }
+          Button { model.tab = .timer; moreOpen = false; model.openForKeyboard?() } label: { Label("Timer", systemImage: "timer") }
           Button("Audio output") { model.tab = .devices; moreOpen = false }
           Button("Saved Text") { model.tab = .files; model.hubView = .savedText; moreOpen = false; model.openForKeyboard?() }
           WeatherBadge(weather: model.weather)

@@ -42,6 +42,10 @@ Use the stop button in Activity to cancel a Drive transfer. **Cancelling** stays
 
 The components use SF Symbols, accessible button names, and the system reduced-motion setting. The native progress ring and activity layout use [islandcn](https://github.com/opencoredev/islandcn) as a design reference. No React renderer or preset service data is included.
 
+### Timer
+
+Open More and select the timer icon to start one local countdown. Enter minutes and seconds. Pause, resume, or cancel it from its view. The timer also appears in Activity and can be cancelled there. Expiry shows a brief result without opening or unhiding the island. It continues while the app is hidden, but is not saved when the app quits. It does not send a system notification or play a sound.
+
 ### Hub
 
 The Hub has **Files** and **Saved Text** views.
@@ -103,6 +107,7 @@ To check activity-store behavior without Xcode test frameworks:
 
 ```sh
 ./scripts/check-activities.sh
+./scripts/check-timer.sh
 ```
 
 These checks use the store's public operations. They do not check the running UI or Google Drive.

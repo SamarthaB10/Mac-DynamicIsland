@@ -7,6 +7,7 @@ enum IslandTab: String, CaseIterable {
   case files = "Hub"
   case devices = "Devices"
   case activities = "Activity"
+  case timer = "Timer"
 }
 
 @MainActor
@@ -19,6 +20,9 @@ final class IslandModel: ObservableObject {
   @Published var tab = IslandTab.music
   @Published var musicArtworkFocused = false
   let activities = ActivityStore()
+  let timer = CountdownTimer()
+  private var timerActivity: UUID?
+  private var timerSubscription: AnyCancellable?
   let hubFiles = HubFileStore()
   @Published var hubView = HubSection.files
   @Published private(set) var savedItems: [SavedItem] = []
@@ -98,6 +102,10 @@ final class IslandModel: ObservableObject {
       savedItems = try textStore.load()
       textStoreLoaded = true
     } catch { textError = "Saved Text could not be loaded. Existing data was kept. \(error.localizedDescription)" }
+    timer.onExpiry = { [weak self] in self?.updateTimerActivity() }
+    timerSubscription = timer.$state.combineLatest(timer.$remaining)
+      .receive(on: RunLoop.main)
+      .sink { [weak self] _, _ in self?.updateTimerActivity() }
     if UserDefaults.standard.bool(forKey: "islandHidden") { send(11) }
     audioSubscription = audio.$name.removeDuplicates().dropFirst()
       .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
@@ -189,10 +197,35 @@ final class IslandModel: ObservableObject {
   func openActivity(_ activity: IslandActivity) {
     switch activity.kind {
     case .upload, .download: openGoogleDrive?()
+    case .timer:
+      tab = .timer
+      openForKeyboard?()
     case .processing:
       tab = .files
       hubView = .files
       openForKeyboard?()
+    }
+  }
+
+  // Timer updates change activity data only; they never reveal or navigate the island.
+  private func updateTimerActivity() {
+    switch timer.state {
+    case .running, .paused:
+      if timerActivity == nil {
+        timerActivity = activities.start(kind: .timer, title: "Timer") { [weak self] in
+          self?.timer.cancel()
+        }
+      }
+      guard let id = timerActivity else { return }
+      let seconds = Int(ceil(timer.remaining))
+      let remaining = String(format: "%02d:%02d", seconds / 60, seconds % 60)
+      activities.update(id, progress: timer.duration > 0 ? timer.remaining / timer.duration : nil,
+        title: "Timer · \(remaining)", detail: timer.state == .paused ? "Paused" : "Time remaining")
+    case .expired, .idle:
+      guard let id = timerActivity else { return }
+      activities.finish(id, state: timer.state == .expired ? .succeeded : .cancelled,
+        detail: timer.state == .expired ? "Timer finished" : "Timer cancelled")
+      timerActivity = nil
     }
   }
 
