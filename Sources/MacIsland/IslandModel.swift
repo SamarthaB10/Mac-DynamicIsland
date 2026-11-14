@@ -30,6 +30,9 @@ final class IslandModel: ObservableObject {
   @Published var savedTextComposing = false
   @Published var savedTextDetailExpanded = false
   @Published var savedTextEditingTitle = false
+  @Published var savedTextEditingContent = false {
+    didSet { updateFileInteraction() }
+  }
   @Published var actionReport: String?
   private let textStore = SavedTextStore()
   private var textStoreLoaded = false
@@ -63,14 +66,14 @@ final class IslandModel: ObservableObject {
 
   static let expandedSize = CGSize(width: 408, height: 216)
   static let hubSize = CGSize(width: 480, height: 360)
-  static let savedTextMaxHeight: CGFloat = 460
+  static let savedTextMaxHeight: CGFloat = 520
   var contentSize: CGSize {
     if tab == .files {
       if hubView == .files { return Self.hubSize }
       let height: CGFloat = savedTextComposing ? 300 :
         (savedItems.isEmpty ? 190 : 204 + SavedTextLayout.listHeight(count: savedItems.count))
       return CGSize(width: 360, height: min(Self.savedTextMaxHeight, height
-        + (savedTextDetailExpanded ? 45 : 0) + (savedTextEditingTitle ? 28 : 0)
+        + (savedTextEditingContent ? 100 : (savedTextDetailExpanded ? 45 : 0)) + (savedTextEditingTitle ? 28 : 0)
         + (textError == nil ? 0 : 32)))
     }
     if tab == .music && musicArtworkFocused {
@@ -136,7 +139,7 @@ final class IslandModel: ObservableObject {
   private var now: UInt64 { DispatchTime.now().uptimeNanoseconds / 1_000_000 }
 
   private func updateFileInteraction() {
-    send(isChoosingFiles || configuringImages || connectingSpotify || draggingFile || menuOpen ? 5 : 6)
+    send(isChoosingFiles || configuringImages || connectingSpotify || draggingFile || menuOpen || savedTextEditingContent ? 5 : 6)
   }
 
   // Rust owns open/close policy. Swift schedules only its next requested deadline.
@@ -283,6 +286,15 @@ final class IslandModel: ObservableObject {
 
   func removeText(_ item: SavedItem) {
     _ = persistText(savedItems.filter { $0.id != item.id })
+  }
+
+  @discardableResult
+  func setTextContent(_ id: UUID, text: String) -> Bool {
+    guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+      let index = savedItems.firstIndex(where: { $0.id == id }) else { return false }
+    var items = savedItems
+    items[index].text = text
+    return persistText(items)
   }
 
   func setTextTitle(_ id: UUID, title: String) {

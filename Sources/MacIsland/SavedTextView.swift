@@ -6,6 +6,8 @@ struct SavedTextView: View {
   @State private var selectedID: UUID?
   @State private var title = ""
   @State private var actionsID: UUID?
+  @State private var editedText = ""
+  @State private var editHeight: CGFloat = 36
 
   private var selected: SavedItem? {
     model.savedItems.first { $0.id == selectedID } ?? model.savedItems.first
@@ -48,7 +50,7 @@ struct SavedTextView: View {
                   select(entry)
                   title = entry.title ?? ""
                   model.savedTextEditingTitle = true
-                })
+                }, editText: { beginEditing(entry) })
             }
           }
         }.frame(height: SavedTextLayout.listHeight(count: model.savedItems.count))
@@ -60,19 +62,38 @@ struct SavedTextView: View {
             Button("Save title") { saveTitle(item) }.controlSize(.small)
           }.font(.system(size: 12))
         }
-        HStack(alignment: .top, spacing: 8) {
-          Image(systemName: item.webURL == nil ? "text.alignleft" : "link")
-            .foregroundStyle(.white.opacity(0.75)).padding(.top, 3)
-            .accessibilityHidden(true)
-          ScrollView {
-            Text(item.text).font(.system(size: 12)).foregroundStyle(.white.opacity(0.9))
-              .textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
-          }.frame(height: model.savedTextDetailExpanded ? 81 : 36)
-            .accessibilityLabel("Selected saved text preview")
-          Button { model.copyText(item) } label: {
-            Image(systemName: "doc.on.doc").frame(width: 28, height: 28).contentShape(Rectangle())
-          }.buttonStyle(.plain).accessibilityLabel("Copy selected saved text").help("Copy selected saved text")
-        }.padding(.horizontal, 8)
+        if model.savedTextEditingContent {
+          VStack(alignment: .leading, spacing: 8) {
+            HubTextInput(text: $editedText, height: $editHeight, save: {})
+              .frame(height: editHeight)
+            HStack {
+              Spacer()
+              Button("Cancel") { model.savedTextEditingContent = false }
+              Button("Save text") {
+                if model.setTextContent(item.id, text: editedText) {
+                  model.savedTextEditingContent = false
+                }
+              }.disabled(editedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }.font(.system(size: 11)).controlSize(.small)
+          }
+        } else {
+          HStack(alignment: .top, spacing: 8) {
+            Image(systemName: item.webURL == nil ? "text.alignleft" : "link")
+              .foregroundStyle(.white.opacity(0.75)).padding(.top, 3)
+              .accessibilityHidden(true)
+            ScrollView {
+              Text(item.text).font(.system(size: 12)).foregroundStyle(.white.opacity(0.9))
+                .textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
+            }.frame(height: model.savedTextDetailExpanded ? 81 : 36)
+              .accessibilityLabel("Selected saved text preview")
+            Button { beginEditing(item) } label: {
+              Image(systemName: "pencil").frame(width: 28, height: 28).contentShape(Rectangle())
+            }.buttonStyle(.plain).accessibilityLabel("Edit selected saved text").help("Edit saved text")
+            Button { model.copyText(item) } label: {
+              Image(systemName: "doc.on.doc").frame(width: 28, height: 28).contentShape(Rectangle())
+            }.buttonStyle(.plain).accessibilityLabel("Copy selected saved text").help("Copy selected saved text")
+          }.padding(.horizontal, 8)
+        }
         Divider().overlay(.white.opacity(0.15))
       }
       if let error = model.textError {
@@ -85,6 +106,7 @@ struct SavedTextView: View {
       actionsID = nil
       model.menuOpen = false
       model.savedTextEditingTitle = false
+      model.savedTextEditingContent = false
       model.savedTextDetailExpanded = false
     }
   }
@@ -98,8 +120,17 @@ struct SavedTextView: View {
       })
   }
 
+  private func beginEditing(_ item: SavedItem) {
+    select(item)
+    editedText = item.text
+    editHeight = 36
+    model.savedTextEditingContent = true
+    model.openForKeyboard?()
+  }
+
   private func select(_ item: SavedItem) {
     selectedID = item.id
+    model.savedTextEditingContent = false
     model.savedTextEditingTitle = false
     model.savedTextDetailExpanded = false
   }
@@ -135,6 +166,7 @@ private struct SavedTextRow: View {
   @Binding var showingActions: Bool
   let select: () -> Void
   let editTitle: () -> Void
+  let editText: () -> Void
 
   private var name: String {
     item.title ?? item.webURL?.host ?? item.text
@@ -162,6 +194,7 @@ private struct SavedTextRow: View {
       }.accessibilityLabel("More actions for \(name)").help("More saved text actions")
         .popover(isPresented: $showingActions) {
           VStack(alignment: .leading, spacing: 8) {
+            Button("Edit text") { editText(); showingActions = false }
             Button("Edit title") { editTitle(); showingActions = false }
             Button("Move up") { model.moveText(item.id, offset: -1); showingActions = false }
               .disabled(model.savedItems.first?.id == item.id)
@@ -179,6 +212,7 @@ private struct SavedTextRow: View {
             Divider()
             Button("Remove", role: .destructive) {
               model.removeText(item)
+              model.savedTextEditingContent = false
               model.savedTextEditingTitle = false
               showingActions = false
             }
