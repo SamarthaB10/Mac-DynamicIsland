@@ -31,6 +31,16 @@ Play music in Spotify. The cover and playing indicator appear beside the notch. 
 
 Allow Automation access to Spotify when macOS asks. If access is denied, change it in **System Settings > Privacy & Security > Automation**. Apple Music is not supported.
 
+### Activity
+
+Drive transfers and Hub file actions share a native activity engine. Music stays visible beside a small job indicator at the notch. Select the job indicator to open its Drive or Hub view. Select **Activity** in the expanded island to see all current jobs, including jobs grouped behind another one.
+
+A ring and bar show real byte progress when the transfer has a known total. A spinner means the total is unknown. Hub file work also uses unknown progress. A check means success; a warning means failure, including a partial failure. Success and cancellation remain for five seconds; failures remain for ten seconds. Detailed results stay in the existing Drive status or Hub report. Results do not open or unhide the island.
+
+Use the stop button in Activity to cancel a Drive transfer. **Cancelling** stays visible until the transfer stops and releases its source files. Files already transferred stay in place. Hub file actions have no stop button because they do not support cancellation during processing. Normal picker cancellation is unchanged.
+
+The components use SF Symbols, accessible button names, and the system reduced-motion setting. The native progress ring and activity layout use [islandcn](https://github.com/opencoredev/islandcn) as a design reference. No React renderer or preset service data is included.
+
 ### Hub
 
 The Hub has **Files** and **Saved Text** views.
@@ -87,6 +97,14 @@ Requires macOS, Swift 6 tools, and Rust. To build for the current Mac:
 ./scripts/build.sh
 open "dist/Mac Island.app"
 ```
+
+To check activity-store behavior without Xcode test frameworks:
+
+```sh
+./scripts/check-activities.sh
+```
+
+These checks use the store's public operations. They do not check the running UI or Google Drive.
 
 To make the universal download:
 

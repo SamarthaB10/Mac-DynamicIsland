@@ -191,7 +191,7 @@ struct CompactIslandView: View {
       HStack(spacing: 2) {
         Button(action: open) {
           PlayingIndicator(playing: media.playing)
-            .frame(width: activities.primary == nil ? 40 : 14, height: 26)
+            .frame(width: activities.primary == nil ? (notice == nil ? 40 : 22) : 14, height: 26)
         }.buttonStyle(.plain).accessibilityLabel("Open Now Playing")
         if let activity = activities.primary {
           CompactActivityButton(activity: activity) {
