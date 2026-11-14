@@ -6,6 +6,7 @@ enum IslandTab: String, CaseIterable {
   case music = "Now Playing"
   case files = "Hub"
   case devices = "Devices"
+  case activities = "Activity"
 }
 
 @MainActor
@@ -17,6 +18,7 @@ final class IslandModel: ObservableObject {
   @Published private(set) var pinned = false
   @Published var tab = IslandTab.music
   @Published var musicArtworkFocused = false
+  let activities = ActivityStore()
   let hubFiles = HubFileStore()
   @Published var hubView = HubSection.files
   @Published private(set) var savedItems: [SavedItem] = []
@@ -175,6 +177,16 @@ final class IslandModel: ObservableObject {
     send(targeted ? 7 : 8)
   }
 
+  func openActivity(_ activity: IslandActivity) {
+    switch activity.kind {
+    case .upload, .download: openGoogleDrive?()
+    case .processing:
+      tab = .files
+      hubView = .files
+      openForKeyboard?()
+    }
+  }
+
   func chooseFiles() {
     isChoosingFiles = true
     let picker = NSOpenPanel()
@@ -240,6 +252,7 @@ final class IslandModel: ObservableObject {
     let sources = hubFiles.selectedOnlineFiles
     guard !sources.isEmpty, !isChoosingFiles, hubFiles.beginProcessing() else { return }
     isChoosingFiles = true
+    let activity = activities.start(kind: .processing, title: "Saving to Downloads", group: .hub)
     Task {
       let result = await Task.detached(priority: .userInitiated) {
         var result = FileActionResult()
@@ -252,6 +265,8 @@ final class IslandModel: ObservableObject {
       }.value
       self.hubFiles.add(result.files)
       self.hubFiles.finishProcessing()
+      self.activities.finish(activity, state: result.failures.isEmpty ? .succeeded : .failed,
+        detail: result.failures.isEmpty ? "Saved to Downloads" : result.failures.joined(separator: "\n"))
       self.isChoosingFiles = false
       self.actionReport = "Saved \(result.files.count) file(s) to Downloads. These copies stay on this Mac."
         + (result.failures.isEmpty ? "" : "\nFailed:\n" + result.failures.joined(separator: "\n"))
@@ -326,6 +341,7 @@ final class IslandModel: ObservableObject {
         self.openForKeyboard?()
         return
       }
+      let activity = self.activities.start(kind: .processing, title: action.activityTitle, group: .hub)
       Task {
         let result = await Task.detached(priority: .userInitiated) {
           FileActions.run(action, sources: sources, folder: folder)
@@ -333,6 +349,8 @@ final class IslandModel: ObservableObject {
         self.hubFiles.add(result.files)
         self.hubFiles.selectedFiles.subtract(sources)
         self.hubFiles.finishProcessing()
+        self.activities.finish(activity, state: result.failures.isEmpty ? .succeeded : .failed,
+          detail: result.failures.isEmpty ? "Finished. See the Hub report." : result.failures.joined(separator: "\n"))
         self.isChoosingFiles = false
         self.openForKeyboard?()
         self.actionReport = "Added \(result.files.count) result file(s) to the Hub."

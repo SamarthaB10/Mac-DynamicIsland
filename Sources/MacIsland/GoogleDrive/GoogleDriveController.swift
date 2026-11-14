@@ -41,9 +41,12 @@ final class GoogleDriveController: ObservableObject {
   @Published private(set) var error: String?
   @Published private(set) var nextPage: String?
   var receivedFile: ((URL) -> Void)?
+  private let activities: ActivityStore
   private let hubFiles: HubFileStore
   private var configuration: GoogleClientConfiguration?
   private let oauth = GoogleOAuth()
+  private var operationTask: Task<Void, Never>?
+  private var transferProgressID: UUID?
   private let session: URLSession = {
     let configuration = URLSessionConfiguration.ephemeral
     configuration.urlCache = nil
@@ -51,8 +54,9 @@ final class GoogleDriveController: ObservableObject {
     return URLSession(configuration: configuration)
   }()
 
-  init(hubFiles: HubFileStore) {
+  init(hubFiles: HubFileStore, activities: ActivityStore) {
     self.hubFiles = hubFiles
+    self.activities = activities
     do {
       configuration = try DriveKeychain.read("configuration", as: GoogleClientConfiguration.self)
       accounts = try DriveKeychain.read("accounts", as: [DriveAccount].self) ?? []
@@ -187,7 +191,9 @@ final class GoogleDriveController: ObservableObject {
       error = "The owner does not allow this file to be downloaded."
       return
     }
-    run("Downloading \(file.name)…") {
+    let activity = activities.start(kind: .download, title: "Downloading \(file.name)", group: .drive,
+      cancel: { [weak self] in self?.operationTask?.cancel() })
+    run("Downloading \(file.name)…", activity: activity) {
       let token = try await self.token()
       let address: URL
       var name = file.name.replacingOccurrences(of: "/", with: "_").replacingOccurrences(
@@ -210,7 +216,9 @@ final class GoogleDriveController: ObservableObject {
       }
       var request = URLRequest(url: address)
       request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-      let (temporary, response) = try await self.session.download(for: request)
+      let progress = self.transferProgress(activity)
+      let (temporary, response) = try await self.session.download(for: request, delegate: progress)
+      try Task.checkCancellation()
       try self.check(response)
       let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[
         0
@@ -227,10 +235,16 @@ final class GoogleDriveController: ObservableObject {
   func upload(_ urls: [URL]) {
     guard !busy, selectedAccount != nil, !urls.isEmpty else { return }
     let folder = folders.last!.id
+    let activity = activities.start(kind: .upload, title: "Uploading to Google Drive", group: .drive,
+      cancel: { [weak self] in self?.operationTask?.cancel() })
     do {
       let upload = try hubFiles.uploadFiles(urls) {
         let token = try await self.token()
-        for url in urls {
+        for (index, url) in urls.enumerated() {
+          try Task.checkCancellation()
+          self.transferProgressID = nil
+          self.activities.update(activity, progress: nil,
+            title: "Uploading \(url.lastPathComponent) (\(index + 1) of \(urls.count))")
           let values = try url.resourceValues(forKeys: [
             .isRegularFileKey, .fileSizeKey, .contentTypeKey,
           ])
@@ -264,24 +278,54 @@ final class GoogleDriveController: ObservableObject {
           upload.setValue(
             values.contentType?.preferredMIMEType ?? "application/octet-stream",
             forHTTPHeaderField: "Content-Type")
-          let (_, uploadResponse) = try await self.session.upload(for: upload, fromFile: url)
+          let progress = self.transferProgress(activity)
+          let (_, uploadResponse) = try await self.session.upload(for: upload, fromFile: url, delegate: progress)
           try self.check(uploadResponse)
           self.status = "Uploaded \(url.lastPathComponent)."
         }
       }
-      run("Uploading to Google Drive…") { try await upload.value }
-    } catch { self.error = error.localizedDescription }
+      run("Uploading to Google Drive…", activity: activity, cancelWork: { upload.cancel() }) {
+        try await upload.value
+      }
+    } catch {
+      self.error = error.localizedDescription
+      activities.finish(activity, state: .failed, detail: error.localizedDescription)
+    }
   }
 
-  private func run(_ message: String, operation: @escaping () async throws -> Void) {
+  private func transferProgress(_ activity: UUID) -> DriveTransferProgress {
+    let progressID = UUID()
+    transferProgressID = progressID
+    return DriveTransferProgress { [weak self] completed, total in
+      Task { @MainActor [weak self] in
+        guard let self, self.transferProgressID == progressID else { return }
+        self.activities.update(activity, completedBytes: completed, totalBytes: total)
+      }
+    }
+  }
+
+  private func run(
+    _ message: String, activity: UUID? = nil, cancelWork: (@Sendable () -> Void)? = nil,
+    operation: @escaping () async throws -> Void
+  ) {
     busy = true
     error = nil
     status = message
-    Task {
-      defer { busy = false }
-      do { try await operation() } catch is CancellationError { status = "Cancelled." } catch {
-        self.error = error.localizedDescription
-        status = ""
+    operationTask = Task {
+      defer { busy = false; operationTask = nil; transferProgressID = nil }
+      do {
+        try await withTaskCancellationHandler {
+          try await operation()
+        } onCancel: { cancelWork?() }
+        if let activity { activities.finish(activity, state: .succeeded, detail: status) }
+      } catch {
+        let cancelled = error is CancellationError || (error as? URLError)?.code == .cancelled
+        if cancelled { status = "Cancelled. Files already transferred stay in place." }
+        else { self.error = error.localizedDescription; status = "" }
+        if let activity {
+          activities.finish(activity, state: cancelled ? .cancelled : .failed,
+            detail: cancelled ? status : error.localizedDescription)
+        }
       }
     }
   }

@@ -5,6 +5,7 @@ struct IslandView: View {
   @ObservedObject var model: IslandModel
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Namespace private var selection
+  @State private var contentExpanded = false
 
   private var motion: Animation? {
     reduceMotion ? nil : .spring(response: 0.36, dampingFraction: 0.86)
@@ -13,7 +14,7 @@ struct IslandView: View {
   var body: some View {
     ZStack(alignment: .top) {
       ZStack(alignment: .top) {
-        if model.expanded {
+        if contentExpanded {
           expandedContent
             .frame(width: model.contentSize.width, height: model.contentSize.height)
             .padding(.top, max(0, model.notchHeight - 6))
@@ -25,15 +26,22 @@ struct IslandView: View {
               .padding(.horizontal, 18)
               .frame(height: model.notchHeight)
             }
+            .allowsHitTesting(model.expanded)
+            .accessibilityHidden(!model.expanded)
             .transition(.opacity)
+            .transaction { $0.animation = reduceMotion ? nil : .easeOut(duration: 0.14) }
         } else {
           CompactIslandView(
-            media: model.media, audio: model.audio, notice: model.connectionNotice,
+            media: model.media, audio: model.audio, activities: model.activities, notice: model.connectionNotice,
             notchWidth: model.notchWidth,
-            open: { model.openForKeyboard?() }
+            open: { model.tab = .music; model.openForKeyboard?() },
+            openActivity: model.openActivity
           )
           .frame(width: model.compactSize.width, height: model.compactSize.height)
+          .allowsHitTesting(!model.expanded)
+          .accessibilityHidden(model.expanded)
           .transition(.opacity)
+          .transaction { $0.animation = reduceMotion ? nil : .easeOut(duration: 0.12) }
         }
       }
       .frame(width: model.panelSize.width, height: model.panelSize.height, alignment: .top)
@@ -59,6 +67,15 @@ struct IslandView: View {
     .tint(.white)
     .font(.system(size: 12))
     .onExitCommand { model.collapse(force: true) }
+    .task(id: model.expanded) {
+      let expanded = model.expanded
+      if expanded && !reduceMotion {
+        try? await Task.sleep(for: .milliseconds(90))
+      }
+      guard !Task.isCancelled else { return }
+      withAnimation(reduceMotion ? nil : .easeOut(duration: 0.14)) { contentExpanded = expanded }
+    }
+    .onChange(of: reduceMotion) { _, _ in contentExpanded = model.expanded }
   }
 
   private var expandedContent: some View {
@@ -82,6 +99,7 @@ struct IslandView: View {
               }
           case .files: HubView(model: model)
           case .devices: DevicesView(audio: model.audio)
+          case .activities: ActivityListView(activities: model.activities, open: model.openActivity)
           }
         }
         .id(model.tab)
@@ -147,50 +165,48 @@ struct IslandView: View {
 struct CompactIslandView: View {
   @ObservedObject var media: MediaController
   @ObservedObject var audio: AudioController
+  @ObservedObject var activities: ActivityStore
   let notice: String?
   let notchWidth: CGFloat
   let open: () -> Void
+  let openActivity: (IslandActivity) -> Void
 
   var body: some View {
-    Button(action: open) {
-      HStack(spacing: notchWidth > 0 ? 0 : 10) {
-        if notchWidth > 0 {
-          Group {
-            if notice != nil {
-              Image(systemName: audio.headphones ? "headphones" : "speaker.wave.2")
-                .font(.system(size: 19)).symbolEffect(.bounce, value: notice)
-            } else {
-              AlbumCover(media: media, size: 22)
+    HStack(spacing: notchWidth > 0 ? 0 : 10) {
+      Button(action: open) {
+        HStack(spacing: 8) {
+          AlbumCover(media: media, size: 22)
+          if notchWidth <= 0 {
+            VStack(alignment: .leading, spacing: 2) {
+              Text(media.hasTrack ? media.title : "Spotify")
+                .font(.system(size: 10.5, weight: .semibold)).lineLimit(1)
+              Text(notice ?? (media.hasTrack ? media.artist : "Move here to open"))
+                .font(.system(size: 9)).foregroundStyle(.white.opacity(0.6)).lineLimit(1)
             }
-          }.frame(width: 44)
-          Color.clear.frame(width: notchWidth)
-          PlayingIndicator(playing: media.playing).frame(width: 44, height: 16)
-        } else if let notice {
+          }
+        }.frame(width: notchWidth > 0 ? 44 : nil)
+      }.buttonStyle(.plain).accessibilityLabel("Open Now Playing, \(media.hasTrack ? media.title : "Spotify")")
+      if notchWidth > 0 { Color.clear.frame(width: notchWidth).allowsHitTesting(false) }
+      else { Spacer(minLength: 0) }
+      HStack(spacing: 2) {
+        Button(action: open) {
+          PlayingIndicator(playing: media.playing)
+            .frame(width: activities.primary == nil ? 40 : 14, height: 26)
+        }.buttonStyle(.plain).accessibilityLabel("Open Now Playing")
+        if let activity = activities.primary {
+          CompactActivityButton(activity: activity) {
+            activities.bringForward(activity.id)
+            openActivity(activity)
+          }
+          .id(activity.id)
+          .transition(.opacity)
+        } else if notice != nil {
           Image(systemName: audio.headphones ? "headphones" : "speaker.wave.2")
-            .font(.system(size: 23)).symbolEffect(.bounce, value: notice)
-          VStack(alignment: .leading, spacing: 2) {
-            Text(notice).font(.system(size: 10.5, weight: .semibold)).lineLimit(1)
-            Text("Connected").font(.system(size: 10)).foregroundStyle(.white.opacity(0.6))
-          }
-          Spacer(minLength: 0)
-          if let battery = audio.battery { BatteryRing(percent: battery) }
-        } else {
-          AlbumCover(media: media, size: 24)
-          VStack(alignment: .leading, spacing: 2) {
-            Text(media.hasTrack ? media.title : "Spotify").font(
-              .system(size: 10.5, weight: .semibold)
-            ).lineLimit(1)
-            Text(media.hasTrack ? media.artist : "Move here to open")
-              .font(.system(size: 9)).foregroundStyle(.white.opacity(0.6)).lineLimit(1)
-          }
-          Spacer(minLength: 0)
-          PlayingIndicator(playing: media.playing).frame(width: 20, height: 14)
+            .font(.system(size: 10)).accessibilityLabel(notice ?? "Audio output changed")
         }
-      }.padding(.horizontal, notchWidth > 0 ? 0 : 12).frame(
-        maxWidth: .infinity, maxHeight: .infinity)
+      }.frame(width: notchWidth > 0 ? 44 : nil)
     }
-    .buttonStyle(.plain)
-    .accessibilityLabel("Open Island")
-    .help("Move near the notch to open. Move away to close.")
+    .padding(.horizontal, notchWidth > 0 ? 0 : 12)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 }
